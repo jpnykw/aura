@@ -4,4 +4,4 @@ coming soon
 | branch | overview |
 | - | - |
 | master | production |
-| stg | prototype |
+| staging | prototype |

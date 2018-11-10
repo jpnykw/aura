@@ -199,16 +199,35 @@ Renderer.prototype.glitch = function (status) {
     let image = this.getImageData(x, y, width, height);
     let data = image.data;
 
-    let redFix = (Math.random() * level) >> 0;
-    let greenFix = (Math.random() * level) >> 0 * level;
-    let blueFix = (Math.random() * level) >> 0;
+    switch (status.type) {
+        default:
+            let redFix = (Math.random() * level) >> 0;
+            let greenFix = (Math.random() * level) >> 0 * level;
+            let blueFix = (Math.random() * level) >> 0;
 
-    for (let i = 0; i < data.length; i += 4) {
-        data[i] = data[i + redFix * 4];
-        data[i + 1] = data[i + 1 + greenFix * 4];
-        data[i + 2] = data[i + 2 + blueFix * 4];
+            for (let i = 0; i < data.length; i += 4) {
+                data[i] = data[i + redFix * 4];
+                data[i + 1] = data[i + 1 + greenFix * 4];
+                data[i + 2] = data[i + 2 + blueFix * 4];
+        
+                data[i + 3] = 180;
+            }
+            break;
 
-        data[i + 3] = 180;
+        case 'box':
+            let max = width * height;
+            for (let i = 0; i < level; i ++) {
+                let index = ((Math.random() * max) >> 0) * 4;
+
+                for (let j = 0, l = (Math.random() * 8000) >> 0; j < l; j ++) {
+                    [data[index], data[index + height * 4]] = [data[index + height * 4], data[index]];
+                    [data[index + 1], data[index + 1 + height * 4]] = [data[index + 1 + height * 4], data[index + 1]];
+                    [data[index + 2], data[index + 2 + height * 4]] = [data[index + 2 + height * 4], data[index + 2]];
+
+                    index += 4;
+                }
+            }
+            break;
     }
 
     this.putImageData(image, x, y);

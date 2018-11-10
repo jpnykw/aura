@@ -1,4 +1,4 @@
-(function () {
+(_ => {
     const init = _ => {
         console.log('[LOG] Initializing');
 
@@ -56,7 +56,8 @@
         };
 
         let guiStatus = {
-            frame: 600
+            frame: 600,
+            brightness: 0
         };
 
         let isBackground = false;
@@ -65,6 +66,7 @@
         let score = 0;
 
         let keyBuffer = [];
+        let mouseBuffer = false;
         let startDelay = 0;
 
         let loadDatas = 5;
@@ -89,19 +91,24 @@
 
         audios[3].loop = false;
 
+        enemyDataset = null;
+        let xhr = new XMLHttpRequest();
+
+        xhr.onreadystatechange = () => {
+            if (xhr.readyState == 4) {
+                let json = JSON.parse(xhr.responseText);
+                enemyDataset = json;
+            }
+        };
+
+        xhr.open('GET', 'file:///C:/Data/Programming/JavaScript/LiteSTG/json/enemy.json');
+        xhr.send(null);
+
         let enemies = [];
         let bullets = [];
 
         window.negative = false;
         window.gameLoop = null;
-
-        document.addEventListener('keydown', event => {
-            keyBuffer[event.keyCode] = 1;
-        });
-
-        document.addEventListener('keyup', event => {
-            keyBuffer[event.keyCode] = 0;
-        });
 
         const gameTitle = (alpha) => {
             let beforeAlpha = context.globalAlpha;
@@ -189,48 +196,68 @@
                 console.log(`[LOG] Setup ID:${gameTick.stage}`);
                 enemies = [];
 
-                gameTick.wave = 0.1;
-            }
+                let calc = (formula, regexp, replace, trace) => {
+                    let stack = `${formula}`.replace(regexp, replace);
+                    return trace ? stack : Function(`return ${stack}`)();
+                }
 
-            // 敵のセット
-            switch (gameTick.stage) {
-                case 1:
-                    for (let i = 0; i < 3; i ++) {
-                        enemies.push({
-                            body: new Enemy({
-                                x: center.x - 100, y: -10,
-                                id: 0, dy: 4,
-                                disable: true
-                            }), // ここに敵のオブジェクト
-                            delay: 1200 + i * 2500 // 発生までのミリあセカンド
-                        });
+                if (enemyDataset[gameTick.stage] != undefined) {
+                    enemyDataset[gameTick.stage].map(data => {
+                        let delay = data.delay; // 発生までのミリあセカンド
 
-                        enemies.push({
-                            body: new Enemy({
-                                x: center.x + 100, y: -10,
-                                id: 0, dy: 4,
-                                disable: true
-                            }),
-                            delay: 8400 + i * 2500
-                        });
-                    }
-                    break;
+                        let x = null;
+                        let y = null;
 
-                case 2:
-                    console.log('CALL!');
-                    enemies.push({
-                        body: new Enemy({
-                            x: center.x, y: -10,
-                            id: 1, dy: 4,
-                            disable: true
-                        }),
-                        delay: 1500
-                    })
-                    break;
+                        let dx = data.dx || 0;
+                        let dy = data.dy || 0;
+                        let id = data.id || 0;
+
+                        if (data.repeat != undefined) {
+                            for (let i = 0, l = data.repeat; i < l; i ++) {
+                                x = calc(data.x, /c(enter)?x/gi, center.x, true);
+                                y = calc(data.y, /c(enter)?x/gi, center.y, true);
+
+                                x = calc(x, /max/gi, width, true);
+                                y = calc(y, /max/gi, height, true);
+
+                                x = calc(x, /i/gi, i);
+                                y = calc(y, /i/gi, i);
+
+                                delay = data.delay;
+                                delay = calc(delay, /i/gi, i);
+
+                                enemies.push({        
+                                    body: new Enemy({
+                                        x, y,
+                                        dx, dy,
+                                        id, disable: true
+                                    }),
+
+                                    delay
+                                });
+                            }
+                        } else {
+                            x = calc(data.x, /c(enter)?x/gi, center.x);
+                            y = calc(data.y, /c(enter)?x/gi, center.y);
+
+                            x = calc(x, /max/gi, width, true);
+                            y = calc(y, /max/gi, height, true);
+
+                            enemies.push({
+                                body: new Enemy({
+                                    x, y,
+                                    x, dy,
+                                    id, disable: true
+                                }),
+
+                                delay
+                            });
+                        }
+                    });
+                }
             }
 
             enemies.map(data => data.time = getTimeStamp());
-
             gameTick.stage ++;
         };
 
@@ -300,7 +327,6 @@
             }
 
             if (gameTick.pause.status) {
-                // playId = 2;
                 playId = 3;
             }
 
@@ -342,25 +368,66 @@
                     bullets.push(new Bullet({
                         x, y: y + 15,
                         dx: 1.3, dy: 7,
-                        adx: 0.1, type: 1
+                        adx: 0.3, type: 1
                     }));
 
                     bullets.push(new Bullet({
                         x, y: y + 15,
                         dx: -1.3, dy: 7,
-                        adx: -0.1, type: 1
+                        adx: -0.3, type: 1
+                    }));
+                    break;
+
+                case 1:
+                    let theta = Math.atan2(
+                        (y + 256) - (myself.body.y + 256),
+                        (x + 256) - (myself.body.x + 256)
+                    ).toDegree();
+
+                    theta += 180;
+                    theta = theta.toRadian();
+
+                    let speed = 8;
+
+                    let dx = Math.cos(theta) * speed;
+                    let dy = Math.sin(theta) * speed;
+
+                    bullets.push(new Bullet({
+                        x, y: y + 15,
+                        dx, dy,
+                        type: 1
                     }));
                     break;
             }
         };
 
-        // events
         document.addEventListener('webkitvisibilitychange', _ => {
             isBackground = document.webkitHidden;
             keyBuffer[27] = isBackground && !gameTick.pause.status >> 0;
         });
 
-        // main loop
+        document.addEventListener('keydown', event => {
+            keyBuffer[event.keyCode] = 1;
+        });
+
+        document.addEventListener('keyup', event => {
+            keyBuffer[event.keyCode] = 0;
+        });
+
+        canvas.addEventListener('mousemove', event => {
+            let rect = canvas.getBoundingClientRect();
+            let x = event.clientX - rect.left;
+            let y = event.clientY - rect.top;
+
+            if (x > width - 50 && mouseBuffer) {
+                guiStatus.brightness = -((y - 255) / 3 >> 0);
+            }
+        });
+
+        canvas.addEventListener('mousedown', _ => mouseBuffer = true);
+
+        canvas.addEventListener('mouseup', _ => mouseBuffer = false);
+
         const main = _ => {
             gameTick.frame ++;
 
@@ -394,12 +461,10 @@
                 if (gameTick.stage > 0) {
                     let timeStamp = getTimeStamp();
 
-                    // (!gameTick.pause.status && enemies.length > 0 && enemies[0].body.shot.tick == 0)
                     if (keyBuffer[27] || keyBuffer[80]) {
                         keyBuffer[27] = 0;
                         keyBuffer[80] = 0;
 
-                        // Pause switch
                         if (getTimeStamp() - gameTick.pause.time > 600 || isBackground) {
                             gameTick.pause.status = !gameTick.pause.status;
 
@@ -423,7 +488,9 @@
                     }
 
                     // 描画
-                    bullets.map(data => data.draw(context));
+                    bullets.map(data => {
+                        data.draw(context);
+                    });
 
                     enemies.map(data => {
                         if (data.body.disable) {
@@ -484,7 +551,9 @@
                         }
 
                         // 更新
-                        bullets.map(data => data.update());
+                        bullets.map(data => {
+                            data.update();
+                        });
                         
                         enemies.map(data => {
                             if (!data.body.disable) {
@@ -499,6 +568,7 @@
                         // 当たり判定
                         bullets.map((bullet, bulletID) => {
                             if (bullet.disappear < 0) return;
+
                             let x = bullet.x;
                             let y = bullet.y;
 
@@ -506,7 +576,6 @@
                                 // enemiy's bullet
                                 if (getDistance(6, x, y, myself.body.x, myself.body.y)) {
                                     bullets[bulletID].disappear = 2;
-                                    // console.log('HIT PLAYER!');
                                 }
                             } else {
                                 // player's bullet
@@ -531,7 +600,7 @@
                             if (data.body.aura != undefined) {
                                 let body = data.body;
                                 if (getDistance(body.aura, body.x, body.y, myself.body.x, myself.body.y)) {
-                                    console.log('[DEBUG]\n私のオーラに触れたな…\n貴様の体は只では済まない…');
+                                    // console.log('[DEBUG]\n私のオーラに触れたな…\n貴様の体は只では済まない…');
                                 }
                             }
                         });
@@ -559,10 +628,17 @@
                         context.glitch({
                             x: 0, y: 0,
                             width, height,
-                            level: 5.6
+                            level: 6
                         });
                     }
                 }
+
+                // test
+                context.glitch({
+                    x: 0, y: 0,
+                    width, height,
+                    level: 50, type: 'box'
+                });
             } else {
                 // Loading
                 loadingShape();
@@ -616,7 +692,8 @@
             }
 
             // fix lightness
-            context.lightness(3, canvas);
+            // context.lightness(3, canvas);
+            if (guiStatus.brightness != 0) context.lightness(guiStatus.brightness, canvas);
         };
 
         gameLoop = setInterval(main, fps);

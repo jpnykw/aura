@@ -56,20 +56,17 @@ class Enemy extends Character {
             case 0:
                 this.hitArea = 20;
                 this.hp = 15;
-
                 this.r = 15;
 
                 this.shot.interval = 30;
                 break;
 
             case 1:
-                this.hitArea = 20;
-                this.hp = 25;
+                this.hitArea = 25;
+                this.hp = 7;
+                this.r = 20;
 
-                this.r = 15;
-                this.shot.interval = 40;
-
-                this.aura = 70;
+                this.shot.interval = 20;
                 break;
         }
 
@@ -81,12 +78,13 @@ class Enemy extends Character {
         let x = this.x;
         let y = this.y;
         let d = this.d || 0;
+        let r = this.r || 10;
 
         switch (this.id) {
             case 0:
                 context.shape({
                     x, y,
-                    d: 90 + d, r: this.r, v: 4,
+                    d: 90 + d, r, v: 4,
                     bold: this.bold
                 });
                 break;
@@ -94,13 +92,7 @@ class Enemy extends Character {
             case 1:
                 context.shape({
                     x, y,
-                    d: 45 + d, r: this.r + 15, v: 4,
-                    bold: this.bold
-                });
-
-                context.shape({
-                    x, y,
-                    d, r: this.r, v: 4,
+                    d, r, v: 5,
                     bold: this.bold
                 });
                 break;

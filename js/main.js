@@ -101,7 +101,7 @@
             }
         };
 
-        xhr.open('GET', 'file:///C:/Data/Programming/JavaScript/LiteSTG/json/enemy.json');
+        xhr.open('GET', './json/enemy.json');
         xhr.send(null);
 
         let enemies = [];

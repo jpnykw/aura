@@ -112,7 +112,7 @@ Renderer.prototype.text = function (status) {
 
 Renderer.prototype.line = function (status) {
     let color = status.color || '#e3e3e1';
-    let bold = status.bold || 2;
+    let bold = status.bold || 1;
 
     let x = status.x || 0;
     let y = status.y || 0;
@@ -194,7 +194,7 @@ Renderer.prototype.glitch = function (status) {
     let width = status.w || status.width || 32;
     let height = status.h || status.height || 32;
 
-    let level = status.level || 3;
+    let level = status.level || 1;
 
     let image = this.getImageData(x, y, width, height);
     let data = image.data;
@@ -216,13 +216,21 @@ Renderer.prototype.glitch = function (status) {
 
         case 'box':
             let max = width * height;
+            let mix = this.mix || false;
+
             for (let i = 0; i < level; i ++) {
                 let index = ((Math.random() * max) >> 0) * 4;
 
                 for (let j = 0, l = (Math.random() * 8000) >> 0; j < l; j ++) {
-                    [data[index], data[index + height * 4]] = [data[index + height * 4], data[index]];
-                    [data[index + 1], data[index + 1 + height * 4]] = [data[index + 1 + height * 4], data[index + 1]];
-                    [data[index + 2], data[index + 2 + height * 4]] = [data[index + 2 + height * 4], data[index + 2]];
+                    if (mix && Math.random() < 0.5) {
+                        [data[index], data[index - height * 4]] = [data[index - height * 4], data[index]];
+                        [data[index + 1], data[index + 1 - height * 4]] = [data[index + 1 - height * 4], data[index + 1]];
+                        [data[index + 2], data[index + 2 - height * 4]] = [data[index + 2 - height * 4], data[index + 2]];
+                    } else {
+                        [data[index], data[index + height * 4]] = [data[index + height * 4], data[index]];
+                        [data[index + 1], data[index + 1 + height * 4]] = [data[index + 1 + height * 4], data[index + 1]];
+                        [data[index + 2], data[index + 2 + height * 4]] = [data[index + 2 + height * 4], data[index + 2]];
+                    }
 
                     index += 4;
                 }

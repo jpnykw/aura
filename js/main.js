@@ -23,7 +23,7 @@
         let myself = {
             body: new Player({
                 x: 255, y: 480,
-                size: 100
+                size: 300
             }),
 
             shot: {
@@ -31,7 +31,8 @@
                 timestamp: getTimeStamp()
             },
 
-            speed: 4.5
+            speed: 5,
+            shift: 2
         }
 
         let center = {
@@ -57,7 +58,8 @@
 
         let guiStatus = {
             frame: 600,
-            brightness: 0
+            brightness: -6,
+            shift: false
         };
 
         let isBackground = false;
@@ -92,6 +94,7 @@
         audios[3].loop = false;
 
         enemyDataset = null;
+
         let xhr = new XMLHttpRequest();
 
         xhr.onreadystatechange = () => {
@@ -118,14 +121,14 @@
             }
 
             context.text({
-                x: center.x, y: 185,
-                bold: 1, color: '#1073b3',
+                x: center.x, y: 187,
+                bold: 2, color: '#23a8ff',
                 text: 'AURA', px: 230
             });
 
             context.text({
                 x: center.x, y: 180,
-                bold: 1, text: 'AURA', px: 230
+                bold: 2, text: 'AURA', px: 230
             });
 
             context.text({
@@ -144,14 +147,19 @@
                 bold: 1
             });
 
-            if (alpha !== undefined) {
-                context.globalAlpha = beforeAlpha;
-            }
+            if (alpha !== undefined) context.globalAlpha = beforeAlpha;
 
             context.glitch({
                 x: 0, y: 0,
                 width, height,
-                level: 0 + (-0.63 + startDelay) * 0.86
+                level: startDelay * 1.1
+            });
+
+            context.glitch({
+                x: 0, y: 0,
+                width, height,
+                level: 4 + startDelay * 2.7 + (Math.random() * (2 * (startDelay + 0.3))) >> 0,
+                type: 'box'
             });
         };
 
@@ -215,7 +223,7 @@
                         if (data.repeat != undefined) {
                             for (let i = 0, l = data.repeat; i < l; i ++) {
                                 x = calc(data.x, /c(enter)?x/gi, center.x, true);
-                                y = calc(data.y, /c(enter)?x/gi, center.y, true);
+                                y = calc(data.y, /c(enter)?y/gi, center.y, true);
 
                                 x = calc(x, /max/gi, width, true);
                                 y = calc(y, /max/gi, height, true);
@@ -238,7 +246,7 @@
                             }
                         } else {
                             x = calc(data.x, /c(enter)?x/gi, center.x);
-                            y = calc(data.y, /c(enter)?x/gi, center.y);
+                            y = calc(data.y, /c(enter)?y/gi, center.y);
 
                             x = calc(x, /max/gi, width, true);
                             y = calc(y, /max/gi, height, true);
@@ -257,7 +265,10 @@
                 }
             }
 
-            enemies.map(data => data.time = getTimeStamp());
+            enemies.map(data => {
+                data.time = getTimeStamp();
+            });
+
             gameTick.stage ++;
         };
 
@@ -282,6 +293,10 @@
                 }
             }
 
+            if (guiStatus.shift) {
+                context.circle({x: myself.body.x, y: myself.body.y, r: 5, bold: 0.7});
+            }
+
             context.shape({
                 x: center.x, y: center.y,
                 d: 0, r: guiStatus.frame, v: 4,
@@ -303,12 +318,12 @@
                 loadingShape();
 
                 context.text({
-                    x: center.x, y: center.y - 80,
+                    x: center.x, y: center.y - 90,
                     text: 'BREAK DOWN', font: 'Haettenschweiler', px: 15
                 });
 
                 context.text({
-                    x: center.x, y: center.y + 90,
+                    x: center.x, y: center.y + 100,
                     text: `${(getTimeStamp() - bootedTime) * 255}`, font: 'Haettenschweiler', px: 15
                 });
 
@@ -355,6 +370,14 @@
                 case 0:
                     score += 100;
                     break;
+
+                case 1:
+                    score += 250;
+                    break;
+
+                case 2:
+                    score += 200;
+                    break;
             }
         };
 
@@ -363,40 +386,52 @@
             let x = enemy.x;
             let y = enemy.y;
 
+            let speed = null;
+            let theta = null;
+            let dx = null;
+            let dy = null;
+
             switch (id) {
                 case 0:
-                    bullets.push(new Bullet({
-                        x, y: y + 15,
-                        dx: 1.3, dy: 7,
-                        adx: 0.3, type: 1
-                    }));
-
-                    bullets.push(new Bullet({
-                        x, y: y + 15,
-                        dx: -1.3, dy: 7,
-                        adx: -0.3, type: 1
-                    }));
+                    bullets.push(new Bullet({x, y: y + 15, dx: 1.3, dy: 7, type: 1}));
+                    bullets.push(new Bullet({x, y: y + 15, dx: -1.3, dy: 7, type: 1}));
                     break;
 
                 case 1:
-                    let theta = Math.atan2(
-                        (y + 256) - (myself.body.y + 256),
-                        (x + 256) - (myself.body.x + 256)
-                    ).toDegree();
+                    speed = 6;
+                    theta = Math.atan2((y + 256) - (myself.body.y + 256), (x + 256) - (myself.body.x + 256)).toDegree();
 
-                    theta += 180;
-                    theta = theta.toRadian();
+                    dx = Math.cos((theta + 180).toRadian()) * speed;
+                    dy = Math.sin((theta + 180).toRadian()) * speed;
+                    bullets.push(new Bullet({x, y: y + 15, dx, dy, type: 1}));
 
-                    let speed = 8;
+                    dx = Math.cos((theta + 185).toRadian()) * speed;
+                    dy = Math.sin((theta + 185).toRadian()) * speed;
+                    bullets.push(new Bullet({x, y: y + 15, dx, dy, type: 1}));
 
-                    let dx = Math.cos(theta) * speed;
-                    let dy = Math.sin(theta) * speed;
+                    dx = Math.cos((theta + 175).toRadian()) * speed;
+                    dy = Math.sin((theta + 175).toRadian()) * speed;
+                    bullets.push(new Bullet({x, y: y + 15, dx, dy, type: 1}));
+                    break;
 
-                    bullets.push(new Bullet({
-                        x, y: y + 15,
-                        dx, dy,
-                        type: 1
-                    }));
+                case 2:
+                    speed = 4;
+
+                    bullets.push(new Bullet({x, y, dx: 0, dy: speed, type: 1}));
+                    bullets.push(new Bullet({x, y, dx: 0, dy: -speed, type: 1}));
+                    bullets.push(new Bullet({x, y, dx: speed, dy: 0, type: 1}));
+                    bullets.push(new Bullet({x, y, dx: -speed, dy: 0, type: 1}));
+                    break;
+
+                case 3:
+                    theta = Math.atan2((y + 256) - (myself.body.y + 256), (x + 256) - (myself.body.x + 256)).toDegree();
+
+                    for (let i = 0; i < 5; i ++) {
+                        dx = Math.cos((theta + 180).toRadian()) * ((i + 1) * 2);
+                        dy = Math.sin((theta + 180).toRadian()) * ((i + 1) * 2);
+
+                        bullets.push(new Bullet({x, y, dx, dy, type: 1}));
+                    }
                     break;
             }
         };
@@ -418,10 +453,6 @@
             let rect = canvas.getBoundingClientRect();
             let x = event.clientX - rect.left;
             let y = event.clientY - rect.top;
-
-            if (x > width - 50 && mouseBuffer) {
-                guiStatus.brightness = -((y - 255) / 3 >> 0);
-            }
         });
 
         canvas.addEventListener('mousedown', _ => mouseBuffer = true);
@@ -441,7 +472,7 @@
             if (gameTick.ready) {
                 // Gaming
                 let alpha = gameTick.frame / 90;
-                context.globalAlpha = alpha > 0.19 ? 0.19 : alpha;
+                context.globalAlpha = alpha > 0.25 ? 0.25 : alpha;
                 
                 context.drawImage(imageBackground, -960, gameTick.frame % 1080);
                 context.drawImage(imageBackground, -960, -1080 + gameTick.frame % 1080);
@@ -449,7 +480,7 @@
                 alpha *= 1.6;
                 context.globalAlpha = alpha > 1 ? 1 : alpha;
 
-                myself.body.size += (15 - myself.body.size) / 8;
+                myself.body.size += (17 - myself.body.size) / 8;
                 myself.body.draw(context);
 
                 if (alpha > 1) {
@@ -460,6 +491,8 @@
 
                 if (gameTick.stage > 0) {
                     let timeStamp = getTimeStamp();
+                    let shift = keyBuffer[16] == 1;
+                    guiStatus.shift = shift;
 
                     if (keyBuffer[27] || keyBuffer[80]) {
                         keyBuffer[27] = 0;
@@ -482,7 +515,6 @@
                             }
                             
                             gameTick.pause.time = timeStamp;
-
                             audioSwitch();
                         }
                     }
@@ -504,8 +536,10 @@
 
                     if (!gameTick.pause.status) {
                         // プレイヤー移動
-                        let dx = ((keyBuffer[39] || 0) - (keyBuffer[37] || 0)) * myself.speed;
-                        let dy = ((keyBuffer[40] || 0) - (keyBuffer[38] || 0)) * myself.speed;
+                        let speed = myself.speed - myself.shift * shift;
+
+                        let dx = ((keyBuffer[39] || 0) - (keyBuffer[37] || 0)) * speed;
+                        let dy = ((keyBuffer[40] || 0) - (keyBuffer[38] || 0)) * speed;
 
                         myself.body.move(dx, dy);
 
@@ -533,18 +567,18 @@
 
                             // 追加
                             bullets.push(new Bullet({
-                                x: myself.body.x, y: myself.body.y - 25,
+                                x: myself.body.x, y: myself.body.y - 20,
                                 dx: 0, dy: -length
                             }));
 
                             bullets.push(new Bullet({
-                                x: myself.body.x - 0.3, y: myself.body.y - 25,
-                                dx: -0.3, dy: -length
+                                x: myself.body.x - 0.3, y: myself.body.y - 20,
+                                dx: -0.6 + 0.3 * shift, dy: -length
                             }));
 
                             bullets.push(new Bullet({
-                                x: myself.body.x + 0.3, y: myself.body.y - 25,
-                                dx: 0.3, dy: -length
+                                x: myself.body.x + 0.3, y: myself.body.y - 20,
+                                dx: 0.6 - 0.3 * shift, dy: -length
                             }));
 
                             myself.shot.timestamp = getTimeStamp();
@@ -621,8 +655,8 @@
                         context.noise({
                             x: 0, y:0,
                             width, height,
-                            level: 30, gray: true,
-                            alpha: 13
+                            level: 25, gray: true,
+                            alpha: 10
                         });
 
                         context.glitch({
@@ -630,15 +664,14 @@
                             width, height,
                             level: 6
                         });
+
+                        context.glitch({
+                            x: 0, y: 0,
+                            width, height,
+                            level: 35, type: 'box'
+                        });
                     }
                 }
-
-                // test
-                context.glitch({
-                    x: 0, y: 0,
-                    width, height,
-                    level: 50, type: 'box'
-                });
             } else {
                 // Loading
                 loadingShape();
@@ -655,7 +688,7 @@
                 if (parsent == 1) {
                     gameTick.data.frame += 0.5;
 
-                    if (Math.random() > 0.6) {
+                    if (Math.random() > 0.4) {
                         context.text({
                             x: center.x, y: center.y + 180,
                             text: 'Completed', font: 'Haettenschweiler', px: 18

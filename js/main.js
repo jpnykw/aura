@@ -71,7 +71,7 @@
         let mouseBuffer = false;
         let startDelay = 0;
 
-        let loadDatas = 5;
+        let loadDatas = 6;
         let loadDatasSplit = 100 / loadDatas;
 
         let imageBackground = new Image();
@@ -81,8 +81,8 @@
         let audios = new Array(loadDatas - 1).fill(0).map(_ => new Audio());
         let audiosPacket = new Array(audios.length).fill(false);
 
-        ['normalBGM', 'negativeBGM', 'pauseBGM', 'impactSE'].map((path, index) => audios[index].src = `audio/${path}.mp3`);
-        [0.92, 0.34, 0.18, 0.86].map((value, index) => audios[index].volume = value);
+        ['normalBGM', 'negativeBGM', 'pauseBGM', 'impactSE', 'hitSE'].map((path, index) => audios[index].src = `audio/${path}.mp3`);
+        [0.92, 0.34, 0.18, 0.86, 0.2].map((value, index) => audios[index].volume = value);
 
         audios.map(audio => {
             audio.preload = 'none';
@@ -92,6 +92,7 @@
         });
 
         audios[3].loop = false;
+        audios[4].loop = false;
 
         enemyDataset = null;
 
@@ -600,6 +601,8 @@
                         });
 
                         // 当たり判定
+                        let isHitEnemy = false;
+
                         bullets.map((bullet, bulletID) => {
                             if (bullet.disappear < 0) return;
 
@@ -621,6 +624,7 @@
                                         enemies[enemyID].body.hp --;
     
                                         if (enemies[enemyID].body.hp < 0) {
+                                            isHitEnemy = true;
                                             addScore(enemy.body.id);
                                             enemies[enemyID].body.disappear = 1;
                                         }
@@ -628,6 +632,12 @@
                                 });
                             }
                         });
+
+                        if (isHitEnemy) {
+                            audios[4].pause();
+                            audios[4].currentTime = 0;
+                            audios[4].play();
+                        }
 
                         // aura
                         enemies.map(data => {

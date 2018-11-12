@@ -58,31 +58,31 @@ class Enemy extends Character {
                 this.hp = 5;
                 this.r = 15;
 
-                this.shot.interval = 32;
+                this.shot.interval = 28;
                 break;
 
             case 1:
                 this.hitArea = 25;
-                this.hp = 15;
+                this.hp = 10;
                 this.r = 20;
 
-                this.shot.interval = 40;
+                this.shot.interval = 43;
                 break;
 
             case 2:
                 this.hitArea = 30;
-                this.hp = 10;
+                this.hp = 9;
                 this.r = 18;
 
-                this.shot.interval = 35;
+                this.shot.interval = 32;
                 break;
 
             case 3:
-                this.hitArea = 25;
-                this.hp = 18;
+                this.hitArea = 30;
+                this.hp = 14;
                 this.r = 20;
 
-                this.shot.interval = 50;
+                this.shot.interval = 70;
                 break;
         }
 
@@ -117,29 +117,25 @@ class Enemy extends Character {
         }
 
         if (this.disappear == 1) {
-            if (this.lines == undefined) {
-                this.lines = 5;
-                this.linesTheta = [(Math.random() * 360) >> 0];
+            if (this.effectTick == undefined) {
+                this.effectTick = 0;
 
-                for (let i = 0; i < this.lines - 1; i ++) {
-                    let theta = 40 + (Math.random() * 320) >> 0;
-                    this.linesTheta.push(this.linesTheta.last() + theta);
-                }
+                this.effects = new Array(6).fill(null).map(_ => {
+                    let dx = -1 + (Math.random() * 2);
+                    let dy = -1 + (Math.random() * 2);
+                    return {dx, dy};
+                });
             }
 
-            let size = 420 / (r * 2);
-            let speed = 2;
+            let speed = this.effectTick * 3.7;
 
-            this.linesTheta.map(theta => {
-                let dir = theta + this.tick * speed;
-                let cos = Math.cos(dir.toRadian());
-                let sin = Math.sin(dir.toRadian());
-
-                let x2 = x + cos * size;
-                let y2 = y + sin * size;
-    
-                context.line({x, y, x2, y2, bold, color: '#ffa823'});
+            this.effects.map(pos => {
+                let dx = pos.dx * speed;
+                let dy = pos.dy * speed;
+                context.circle({x: x + dx, y: y + dy, r, bold: 0.4});
             });
+
+            this.effectTick ++;
         }
 
         if (this.aura != undefined) {

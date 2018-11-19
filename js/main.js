@@ -40,9 +40,10 @@
             y: height / 2
         };
 
-        let gameTick = {
+        gameTick = {
             stage: 0,
             frame: 0,
+            steps: 0,
             ready: false,
 
             pause: {
@@ -51,26 +52,36 @@
             },
 
             data: {
-                onLoaded: false,
-                frame: 0
+                frame: 0,
+                onLoaded: false
             }
         };
 
         let guiStatus = {
             frame: 600,
             brightness: -6,
-            shift: false
+            shift: false,
+
+            frames: [
+                {size: 800, goto: 270, vertex: 5, direction: 270, accelSpeed: 5, steps: [0]},
+                {size: 800, goto: 290, vertex: 5, direction: 270, accelSpeed: 6, steps: [0]},
+                {size: 800, goto: 310, vertex: 5, direction: 270, accelSpeed: 7, steps: [0]},
+
+                {size: 700, goto: 490, vertex: 4, direction: 0, accelSpeed: 8, steps: [2], color: '#26afff'},
+                {size: 700, goto: 460, vertex: 4, direction: 0, accelSpeed: 7, steps: [2]},
+                {size: 700, goto: 450, vertex: 4, direction: 0, accelSpeed: 6, steps: [2]},
+                {size: 700, goto: 440, vertex: 4, direction: 0, accelSpeed: 5, steps: [2]},
+            ]
         };
 
         let isBackground = false;
-
         let gameTitleAlpha = 1;
         let score = 0;
 
         let keyBuffer = [];
-        let mouseBuffer = false;
         let startDelay = 0;
 
+        // load some data
         let loadDatas = 6;
         let loadDatasSplit = 100 / loadDatas;
 
@@ -80,24 +91,20 @@
 
         let audios = new Array(loadDatas - 1).fill(0).map(_ => new Audio());
         let audiosPacket = new Array(audios.length).fill(false);
-
         ['normalBGM', 'negativeBGM', 'pauseBGM', 'impactSE', 'hitSE'].map((path, index) => audios[index].src = `audio/${path}.mp3`);
         [0.92, 0.34, 0.18, 0.86, 0.2].map((value, index) => audios[index].volume = value);
 
         audios.map(audio => {
-            audio.preload = 'none';
             audio.load();
-
+            audio.preload = 'none';
             audio.loop = true;
         });
 
         audios[3].loop = false;
         audios[4].loop = false;
 
-        enemyDataset = null;
-
+        let enemyDataset = null;
         let xhr = new XMLHttpRequest();
-
         xhr.onreadystatechange = () => {
             if (xhr.readyState == 4) {
                 let json = JSON.parse(xhr.responseText);
@@ -174,12 +181,13 @@
                         startDelay = startDelay < 0 ? 0 : startDelay;
 
                         if (startDelay > 15) {
+                            gameTick.steps = 2;
                             audios[0].play();
                             updateStage();
                         }
                     }
                     break;
-                
+
                 case 1:
                     gameTitleAlpha += -gameTitleAlpha / 8;
                     startDelay += -startDelay / 13;
@@ -235,7 +243,7 @@
                                 delay = data.delay;
                                 delay = calc(delay, /i/gi, i);
 
-                                enemies.push({        
+                                enemies.push({
                                     body: new Enemy({
                                         x, y,
                                         dx, dy,
@@ -298,16 +306,8 @@
                 context.circle({x: myself.body.x, y: myself.body.y, r: 5, bold: 0.7});
             }
 
-            context.shape({
-                x: center.x, y: center.y,
-                d: 0, r: guiStatus.frame, v: 4,
-                bold: 0.5
-            });
-
-            context.text({
-                x: center.x, y: height - 5,
-                text: `0000000000${score}`.slice(-10), font: 'Haettenschweiler', px: 11
-            });
+            // context.shape({x: center.x, y: center.y, d: 0, r: guiStatus.frame, v: 4, bold: 0.5});
+            context.text({x: center.x, y: height - 5, text: `0000000000${score}`.slice(-10), font: 'Haettenschweiler', px: 11});
 
             if (gameTick.pause.status) {
                 context.globalAlpha = 0.4;
@@ -318,20 +318,9 @@
 
                 loadingShape();
 
-                context.text({
-                    x: center.x, y: center.y - 90,
-                    text: 'BREAK DOWN', font: 'Haettenschweiler', px: 15
-                });
-
-                context.text({
-                    x: center.x, y: center.y + 100,
-                    text: `${(getTimeStamp() - bootedTime) * 255}`, font: 'Haettenschweiler', px: 15
-                });
-
-                context.text({
-                    x: center.x, y: center.y + 10,
-                    text: `WAVE${gameTick.stage < 2 ? 1 : gameTick.stage - 1}`, font: 'Haettenschweiler', px: 20
-                });
+                context.text({x: center.x, y: center.y - 90, text: 'BREAK DOWN', font: 'Haettenschweiler', px: 15});
+                context.text({x: center.x, y: center.y + 100, text: `${(getTimeStamp() - bootedTime) * 255}`, font: 'Haettenschweiler', px: 15});
+                context.text({x: center.x, y: center.y + 10, text: `WAVE${gameTick.stage < 2 ? 1 : gameTick.stage - 1}`, font: 'Haettenschweiler', px: 20});
             }
         };
 
@@ -362,7 +351,6 @@
 
         /* const */ negativeSwitch = _ => {
             negative = !negative;
-            
             audioSwitch();
         }
 
@@ -394,12 +382,14 @@
 
             switch (id) {
                 case 0:
-                    bullets.push(new Bullet({x, y: y + 15, dx: 1.3, dy: 7, type: 1}));
-                    bullets.push(new Bullet({x, y: y + 15, dx: -1.3, dy: 7, type: 1}));
+                    speed = 3.2;
+
+                    bullets.push(new Bullet({x, y: y + 15, dx: 0.8, dy: speed, adx: 0.1, ady: 0.2, type: 1}));
+                    bullets.push(new Bullet({x, y: y + 15, dx: -0.8, dy: speed, adx: -0.1, ady: 0.2, type: 1}));
                     break;
 
                 case 1:
-                    speed = 6;
+                    speed = 4;
                     theta = Math.atan2((y + 256) - (myself.body.y + 256), (x + 256) - (myself.body.x + 256)).toDegree();
 
                     dx = Math.cos((theta + 180).toRadian()) * speed;
@@ -416,7 +406,7 @@
                     break;
 
                 case 2:
-                    speed = 4;
+                    speed = 2.3;
 
                     bullets.push(new Bullet({x, y, dx: 0, dy: speed, type: 1}));
                     bullets.push(new Bullet({x, y, dx: 0, dy: -speed, type: 1}));
@@ -454,15 +444,14 @@
             let rect = canvas.getBoundingClientRect();
             let x = event.clientX - rect.left;
             let y = event.clientY - rect.top;
+
+            return {x, y}; // test
         });
-
-        canvas.addEventListener('mousedown', _ => mouseBuffer = true);
-
-        canvas.addEventListener('mouseup', _ => mouseBuffer = false);
 
         const main = _ => {
             gameTick.frame ++;
 
+            let alpha = 0;
             gameControll();
 
             context.beginPath();
@@ -471,13 +460,23 @@
             context.fillRect(0, 0, width, height);
 
             if (gameTick.ready) {
-                // Gaming
-                let alpha = gameTick.frame / 90;
+                alpha = gameTick.frame / 90;
                 context.globalAlpha = alpha > 0.25 ? 0.25 : alpha;
-                
                 context.drawImage(imageBackground, -960, gameTick.frame % 1080);
                 context.drawImage(imageBackground, -960, -1080 + gameTick.frame % 1080);
+            }
 
+            context.globalAlpha = 1;
+            guiStatus.frames.map(data => {
+                if (data.steps.includes(gameTick.steps)) {
+                    let color = data.color || '#e3e3e1';
+                    context.shape({x: center.x, y: center.y, r: data.size, v: data.vertex, d: data.direction, bold: 0.5, color});
+                    data.size += (data.goto - data.size) / data.accelSpeed;
+                }
+            });
+
+            if (gameTick.ready) {
+                // Gaming
                 alpha *= 1.6;
                 context.globalAlpha = alpha > 1 ? 1 : alpha;
 
@@ -514,7 +513,7 @@
                             } else {
                                 keyBuffer.fill(0);
                             }
-                            
+
                             gameTick.pause.time = timeStamp;
                             audioSwitch();
                         }
@@ -538,10 +537,8 @@
                     if (!gameTick.pause.status) {
                         // プレイヤー移動
                         let speed = myself.speed - myself.shift * shift;
-
                         let dx = ((keyBuffer[39] || 0) - (keyBuffer[37] || 0)) * speed;
                         let dy = ((keyBuffer[40] || 0) - (keyBuffer[38] || 0)) * speed;
-
                         myself.body.move(dx, dy);
 
                         let fix = 15;
@@ -589,7 +586,7 @@
                         bullets.map(data => {
                             data.update();
                         });
-                        
+
                         enemies.map(data => {
                             if (!data.body.disable) {
                                 data.body.update();
@@ -618,11 +615,11 @@
                                 // player's bullet
                                 enemies.map((enemy, enemyID) => {
                                     if (enemy.body.disappear != 0) return;
-    
+
                                     if (getDistance(enemy.body.hitArea, x, y, enemy.body.x, enemy.body.y)) {
                                         bullets[bulletID].disappear = 2;
                                         enemies[enemyID].body.hp --;
-    
+
                                         if (enemies[enemyID].body.hp < 0) {
                                             isHitEnemy = true;
                                             addScore(enemy.body.id);
@@ -696,28 +693,28 @@
                 });
 
                 if (parsent == 1) {
-                    gameTick.data.frame += 0.5;
+                    gameTick.data.frame += 0.38; // speed
 
                     if (Math.random() > 0.4) {
-                        context.text({
-                            x: center.x, y: center.y + 180,
-                            text: 'Completed', font: 'Haettenschweiler', px: 18
-                        });
+                        context.text({ x: center.x, y: center.y + 180, text: 'Completed', font: 'Haettenschweiler', px: 18});
                     }
 
                     context.globalAlpha = gameTick.data.frame / 11;
-                    
                     context.beginPath();
                     context.fillStyle = '#1c1c1e';
                     context.fillRect(0, 0, width, height);
 
                     if (gameTick.data.frame > 30) {
+                        gameTick.steps = 1;
                         gameTick.frame = 0;
                         gameTick.ready = true;
-
                         console.log('[LOG] Booted Ready');
                     }
                 } else {
+                    if (Math.random() > 0.45) {
+                        context.text({ x: center.x, y: center.y + 180, text: 'Loading', font: 'Haettenschweiler', px: 18});
+                    }
+
                     audios.map((audio, index) => {
                         if (!audiosPacket[index] && audio.readyState == 4) {
                             gameTick.data.onLoaded += loadDatasSplit;
@@ -734,9 +731,10 @@
                 });
             }
 
-            // fix lightness
-            // context.lightness(3, canvas);
             if (guiStatus.brightness != 0) context.lightness(guiStatus.brightness, canvas);
+
+            // test gray scale
+            // if (keyBuffer[32]) context.gray(canvas); // ok
         };
 
         gameLoop = setInterval(main, fps);

@@ -26,7 +26,7 @@ class Character {
                 disappear += !(min < this.x && max > this.x && min < this.y && max > this.y) * 2;
                 break;
         }
-
+        
         this.disappear = disappear;
     }
 }
@@ -55,10 +55,10 @@ class Enemy extends Character {
         switch (this.id) {
             case 0:
                 this.hitArea = 20;
-                this.hp = 8;
+                this.hp = 5;
                 this.r = 15;
 
-                this.shot.interval = 30;
+                this.shot.interval = 28;
                 break;
 
             case 1:
@@ -66,7 +66,7 @@ class Enemy extends Character {
                 this.hp = 10;
                 this.r = 20;
 
-                this.shot.interval = 50;
+                this.shot.interval = 43;
                 break;
 
             case 2:
@@ -74,7 +74,7 @@ class Enemy extends Character {
                 this.hp = 9;
                 this.r = 18;
 
-                this.shot.interval = 36;
+                this.shot.interval = 32;
                 break;
 
             case 3:
@@ -82,7 +82,7 @@ class Enemy extends Character {
                 this.hp = 14;
                 this.r = 20;
 
-                this.shot.interval = 80;
+                this.shot.interval = 70;
                 break;
         }
 
@@ -96,16 +96,13 @@ class Enemy extends Character {
         let r = this.r || 10;
         let bold = this.bold || 1;
 
-        let color = '#26afff';
         switch (this.id) {
             case 0:
-                context.shape({x, y, d: 90 + d, r, v: 4, bold, color});
-                context.shape({x, y: y + 5, d: 90 + d, r, v: 4, bold});
+                context.shape({ x, y, d: 90 + d, r, v: 4, bold});
                 break;
 
             case 1:
-                context.shape({x, y, d: 270, r, v: 5, bold, color});
-                context.shape({x, y: y, d: 270, r: r + 5, v: 5, bold});
+                context.shape({x, y, d: 270, r, v: 5, bold});
                 break;
 
             case 2:
@@ -182,8 +179,7 @@ class Bullet extends Character {
 
     draw (context) {
         if (this.type == 1) {
-            context.circle({x: this.x, y: this.y, r: 3.5, bold: 0.7, color: '#26afff'});
-            context.circle({x: this.x, y: this.y, r: 1.5});
+            context.circle({x: this.x, y: this.y, r: 3, bold: 0.7});
         } else {
             context.line({x: this.x, y: this.y, x2: this.x, y2: this.y - 7, bold: 0.4});
         }

@@ -179,7 +179,7 @@ Renderer.prototype.noise = function (status) {
             data[i] += Math.random() * (level * 2) - level;
             data[i + 1] += Math.random() * (level * 2) - level;
             data[i + 2] += Math.random() * (level * 2) - level;
-    
+
             data[i + 3] = alpha || Math.random() * 255;
         }
     }
@@ -209,7 +209,7 @@ Renderer.prototype.glitch = function (status) {
                 data[i] = data[i + redFix * 4];
                 data[i + 1] = data[i + 1 + greenFix * 4];
                 data[i + 2] = data[i + 2 + blueFix * 4];
-        
+
                 data[i + 3] = 180;
             }
             break;
@@ -252,6 +252,24 @@ Renderer.prototype.lightness = function (level, canvas) {
         data[i] += level;
         data[i + 1] += level;
         data[i + 2] += level;
+    }
+
+    this.putImageData(image, 0, 0);
+}
+
+Renderer.prototype.gray = function (canvas) {
+    let height = canvas.height;
+    let width = canvas.width;
+
+    let image = this.getImageData(0, 0, width, height);
+    let data = image.data;
+
+    for (let i = 0; i < data.length; i += 4) {
+        let color = (data[i] + data[i + 1] + data[i + 2]) / 3;
+
+        data[i] = color;
+        data[i + 1] = color;
+        data[i + 2] = color;
     }
 
     this.putImageData(image, 0, 0);

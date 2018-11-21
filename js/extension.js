@@ -16,7 +16,6 @@ Array.prototype.last = function () {
 
 Array.prototype.random = function (getIndex) {
     let index = (Math.random() * this.length) >> 0;
-
     return getIndex ? index : this[index];
 }
 

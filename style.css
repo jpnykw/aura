@@ -1,0 +1,42 @@
+body {
+    background: #1c1c1e;
+    text-align: center;
+
+    overflow: hidden;
+}
+
+a {
+    color: #e3e3e1;
+    text-decoration: none;
+}
+
+canvas {
+    box-shadow: 0 0 70px 12px #232330;
+}
+
+.game-area {
+    position: absolute;
+
+    left: 50%;
+    top: 50%;
+
+    transform: translate(-50%, -50%);
+}
+
+.footer {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+
+    height: 40px;
+    width: 100%;
+
+    background: #232330;
+}
+
+.footer p {
+    color: #e3e3e1;
+
+    position: relative;
+    bottom: 5px;
+}

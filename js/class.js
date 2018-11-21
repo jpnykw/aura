@@ -38,6 +38,7 @@ class Player extends Character {
 
     draw (context) {
         let size = this.size;
+        context.shape({x: this.x, y: this.y + 10, d: 270, r: size, v: 3, bold: 1.3, color: '#2e2e2e', fv: [size / 1.5, size / -3, size / -3]});
         context.shape({x: this.x, y: this.y + 5, d: 270, r: size, v: 3, bold: 0.7, fv: [size / 1.5, size / -3, size / -3]});
     }
 }
@@ -55,7 +56,7 @@ class Enemy extends Character {
         switch (this.id) {
             case 0:
                 this.hitArea = 20;
-                this.hp = 8;
+                this.hp = 10;
                 this.r = 15;
 
                 this.shot.interval = 30;
@@ -66,7 +67,7 @@ class Enemy extends Character {
                 this.hp = 10;
                 this.r = 20;
 
-                this.shot.interval = 50;
+                this.shot.interval = 67;
                 break;
 
             case 2:
@@ -109,14 +110,25 @@ class Enemy extends Character {
                 break;
 
             case 2:
+                context.shape({x, y, d: 270, r: r * 1.7, v: 5, bold, color});
                 context.shape({x, y, d: 270, r: r * 1.5, v: 5, bold});
+
+                context.shape({x, y, d: 90, r: r * 0.8, v: 5, bold, color});
                 context.shape({x, y, d: 90, r, v: 5, bold});
                 break;
 
             case 3:
+                context.shape({ x, y, d: 0, r: r * 1.2, v: 3, bold, color});
                 context.shape({ x, y, d: 0, r, v: 3, bold});
+
+                context.shape({ x, y, d: 180, r: r * 1.2, v: 3, bold, color});
                 context.shape({ x, y, d: 180, r, v: 3, bold});
                 break;
+        }
+
+        if (this.aura != undefined) {
+            context.shape({x, y, d: this.tick, r: this.aura, v: 9, bold: this.bold});
+            context.shape({x, y, d: this.tick + 45, r: this.aura, v: 9, bold: this.bold});
         }
 
         if (this.disappear == 1) {
@@ -135,15 +147,11 @@ class Enemy extends Character {
             this.effects.map(pos => {
                 let dx = pos.dx * speed;
                 let dy = pos.dy * speed;
-                context.circle({x: x + dx, y: y + dy, r, bold: 0.4});
+                context.circle({x: x + dx, y: y + dy, r, color: '#26afff'});
+                context.circle({x: x + dx, y: y + dy, r: r * 0.86, color: '#2e2e2e'});
             });
 
             this.effectTick ++;
-        }
-
-        if (this.aura != undefined) {
-            context.shape({x, y, d: this.tick, r: this.aura, v: 9, bold: this.bold});
-            context.shape({x, y, d: this.tick + 45, r: this.aura, v: 9, bold: this.bold});
         }
     }
 
@@ -185,6 +193,7 @@ class Bullet extends Character {
             context.circle({x: this.x, y: this.y, r: 3.5, bold: 0.7, color: '#26afff'});
             context.circle({x: this.x, y: this.y, r: 1.5});
         } else {
+            context.line({x: this.x, y: this.y + 5, x2: this.x, y2: this.y - 13, bold: 1.4, color: '#2e2e2e'});
             context.line({x: this.x, y: this.y, x2: this.x, y2: this.y - 7, bold: 0.4});
         }
     }
@@ -192,8 +201,17 @@ class Bullet extends Character {
     update () {
         this.move(this.dx, this.dy);
 
-        this.dx += this.adx || 0;
-        this.dy += this.ady || 0;
+        if (this.mdx !== undefined && Math.abs(this.dx - this.mdx) < 0.1) {
+            this.dx = this.mdx;
+        } else {
+            this.dx += this.adx || 0;
+        }
+
+        if (this.mdy !== undefined && Math.abs(this.dy - this.mdy) < 0.1) {
+            this.dy = this.mdy;
+        } else {
+            this.dy += this.ady || 0;
+        }
 
         this.checkOverArea();
     }

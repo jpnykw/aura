@@ -27,7 +27,7 @@
             }),
 
             shot: {
-                interval: 230,
+                interval: 160,
                 timestamp: getTimeStamp()
             },
 
@@ -60,12 +60,17 @@
         let guiStatus = {
             frame: 600,
             brightness: -6,
+            bgAlpha: 0.18,
             shift: false,
 
             frames: [
-                {size: 800, goto: 270, vertex: 5, direction: 270, accelSpeed: 5, steps: [0]},
-                {size: 800, goto: 290, vertex: 5, direction: 270, accelSpeed: 6, steps: [0]},
-                {size: 800, goto: 310, vertex: 5, direction: 270, accelSpeed: 7, steps: [0]},
+                {size: 800, goto: 220, vertex: 5, direction: 270, accelSpeed: 4, steps: [0]},
+                {size: 800, goto: 250, vertex: 5, direction: 270, accelSpeed: 5, steps: [0]},
+                {size: 800, goto: 280, vertex: 5, direction: 270, accelSpeed: 6, steps: [0]},
+
+                {size: 800, goto: 230, vertex: 5, direction: 270, accelSpeed: 4, steps: [0], color: '#26afff'},
+                {size: 800, goto: 260, vertex: 5, direction: 270, accelSpeed: 5, steps: [0], color: '#26afff'},
+                {size: 800, goto: 290, vertex: 5, direction: 270, accelSpeed: 6, steps: [0], color: '#26afff'},
 
                 {size: 700, goto: 490, vertex: 4, direction: 0, accelSpeed: 8, steps: [2], color: '#26afff'},
                 {size: 700, goto: 460, vertex: 4, direction: 0, accelSpeed: 7, steps: [2]},
@@ -81,7 +86,6 @@
         let keyBuffer = [];
         let startDelay = 0;
 
-        // load some data
         let loadDatas = 6;
         let loadDatasSplit = 100 / loadDatas;
 
@@ -303,7 +307,8 @@
             }
 
             if (guiStatus.shift) {
-                context.circle({x: myself.body.x, y: myself.body.y, r: 5, bold: 0.7});
+                context.circle({x: myself.body.x, y: myself.body.y, r: 3, color: '#2e2e2e'});
+                context.circle({x: myself.body.x, y: myself.body.y, r: 4, bold: 0.7});
             }
 
             // context.shape({x: center.x, y: center.y, d: 0, r: guiStatus.frame, v: 4, bold: 0.5});
@@ -377,6 +382,11 @@
 
             let speed = null;
             let theta = null;
+
+            let mdx = null;
+            let mdy = null;
+            let adx = null;
+            let ady = null;
             let dx = null;
             let dy = null;
 
@@ -389,20 +399,20 @@
                     break;
 
                 case 1:
-                    speed = 4;
+                    let add = (dx, dy) => {
+                        mdx = dx * 0.3;
+                        mdy = dy * 0.3;
+                        adx = dx * -0.02;
+                        ady = dy * -0.02;
+                        bullets.push(new Bullet({x, y: y + 15, dx, dy, adx, ady, mdx, mdy, type: 1}));
+                    };
+
+                    speed = 9;
                     theta = Math.atan2((y + 256) - (myself.body.y + 256), (x + 256) - (myself.body.x + 256)).toDegree();
 
-                    dx = Math.cos((theta + 180).toRadian()) * speed;
-                    dy = Math.sin((theta + 180).toRadian()) * speed;
-                    bullets.push(new Bullet({x, y: y + 15, dx, dy, type: 1}));
-
-                    dx = Math.cos((theta + 185).toRadian()) * speed;
-                    dy = Math.sin((theta + 185).toRadian()) * speed;
-                    bullets.push(new Bullet({x, y: y + 15, dx, dy, type: 1}));
-
-                    dx = Math.cos((theta + 175).toRadian()) * speed;
-                    dy = Math.sin((theta + 175).toRadian()) * speed;
-                    bullets.push(new Bullet({x, y: y + 15, dx, dy, type: 1}));
+                    add(Math.cos((theta + 180).toRadian()) * speed, Math.sin((theta + 180).toRadian()) * speed);
+                    add(Math.cos((theta + 185).toRadian()) * speed, Math.sin((theta + 185).toRadian()) * speed);
+                    add(Math.cos((theta + 175).toRadian()) * speed, Math.sin((theta + 175).toRadian()) * speed);
                     break;
 
                 case 2:
@@ -461,7 +471,7 @@
 
             if (gameTick.ready) {
                 alpha = gameTick.frame / 90;
-                context.globalAlpha = alpha > 0.25 ? 0.25 : alpha;
+                context.globalAlpha = alpha > guiStatus.bgAlpha ? guiStatus.bgAlpha : alpha;
                 context.drawImage(imageBackground, -960, gameTick.frame % 1080);
                 context.drawImage(imageBackground, -960, -1080 + gameTick.frame % 1080);
             }

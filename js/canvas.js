@@ -219,22 +219,45 @@ Renderer.prototype.glitch = function (status) {
             let mix = this.mix || false;
 
             for (let i = 0; i < level; i ++) {
-                let index = ((Math.random() * max) >> 0) * 4;
+                let i = ((Math.random() * max) >> 0) * 4;
 
                 for (let j = 0, l = (Math.random() * 8000) >> 0; j < l; j ++) {
                     if (mix && Math.random() < 0.5) {
-                        [data[index], data[index - height * 4]] = [data[index - height * 4], data[index]];
-                        [data[index + 1], data[index + 1 - height * 4]] = [data[index + 1 - height * 4], data[index + 1]];
-                        [data[index + 2], data[index + 2 - height * 4]] = [data[index + 2 - height * 4], data[index + 2]];
+                        [data[i], data[i - height * 4]] = [data[i - height * 4], data[i]];
+                        [data[i + 1], data[i + 1 - height * 4]] = [data[i + 1 - height * 4], data[i + 1]];
+                        [data[i + 2], data[i + 2 - height * 4]] = [data[i + 2 - height * 4], data[i + 2]];
                     } else {
-                        [data[index], data[index + height * 4]] = [data[index + height * 4], data[index]];
-                        [data[index + 1], data[index + 1 + height * 4]] = [data[index + 1 + height * 4], data[index + 1]];
-                        [data[index + 2], data[index + 2 + height * 4]] = [data[index + 2 + height * 4], data[index + 2]];
+                        [data[i], data[i + height * 4]] = [data[i + height * 4], data[i]];
+                        [data[i + 1], data[i + 1 + height * 4]] = [data[i + 1 + height * 4], data[i + 1]];
+                        [data[i + 2], data[i + 2 + height * 4]] = [data[i + 2 + height * 4], data[i + 2]];
                     }
 
-                    index += 4;
+                    i += 4;
                 }
             }
+            break;
+
+        case 'line':
+            let w = image.width;
+            let h = image.height;
+
+            let yPos = new Array(h).fill(0).map((x, y) => y);
+            let ids = [];
+
+            for (let i = 0; i < level; i ++) {
+                ids.push(yPos.random(true));
+            }
+
+            ids.map(id => {
+                let dy = -level + Math.random() * (level * 2);
+
+                for (let i = id * w;; j < w; j ++) {
+                    let k = i * 4;
+                    [data[k], data[k + dy * w]] = [data[k + dy * w], data[i]];
+                    [data[k], data[k + 1 + dy * w]] = [data[k + 1 + dy * w], data[i]];
+                    [data[k], data[k + 2 + dy * w]] = [data[k + 2 + dy * w], data[i]];
+                }
+            });
             break;
     }
 

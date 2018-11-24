@@ -1,4 +1,3 @@
-v0.4
 coming soon
 
 # Branches

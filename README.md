@@ -1,6 +1,8 @@
-coming soon	coming soon
- # Branches	# Branches
-| branch | overview |	| branch | overview |
-| - | - |	| - | - |
-| master | production |	| master | production |
+coming soon
+
+# Branches
+| branch | overview |
+| - | - |
+| master | production |
 | staging | prototype |
+| vXX.YY | progress |

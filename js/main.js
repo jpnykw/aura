@@ -122,6 +122,7 @@
         let enemies = [];
         let bullets = [];
 
+        window.onGlitch = true;
         window.negative = false;
         window.gameLoop = null;
 
@@ -316,7 +317,7 @@
 
             if (gameTick.pause.status) {
                 context.globalAlpha = 0.4;
-                context.fillStyle = '#1c1c1e';
+                context.fillStyle = '#141415';
                 context.fillRect(0, 0, width, height);
 
                 context.globalAlpha = 0.92;
@@ -466,7 +467,7 @@
 
             context.beginPath();
             context.globalAlpha = 1;
-            context.fillStyle = '#1c1c1e';
+            context.fillStyle = '#141415';
             context.fillRect(0, 0, width, height);
 
             if (gameTick.ready) {
@@ -669,12 +670,12 @@
                             }
                         });
                     } else {
-                        context.noise({
-                            x: 0, y:0,
-                            width, height,
-                            level: 25, gray: true,
-                            alpha: 10
-                        });
+                        // context.noise({
+                        //     x: 0, y:0,
+                        //     width, height,
+                        //     level: 25, gray: true,
+                        //     alpha: 10
+                        // });
 
                         context.glitch({
                             x: 0, y: 0,
@@ -697,21 +698,22 @@
                 let parsent = -0.8 + gameTick.data.onLoaded / 50;
                 parsent = parsent > 1 ? 1 : parsent;
 
-                context.shape({
-                    x: center.x, y: center.y + 128, d: 45, r: 22, v: 4,
-                    fx: [-1, parsent, parsent, -1].map(x => x * barSize)
-                });
+                let fx = [-1, parsent, parsent, -1].map(x => x * barSize);
+                context.shape({x: center.x, y: center.y + 128, d: 45, r: 22, v: 4, fx});
+
+                fx = new Array(4).fill(0).map((...x) => (barSize + 5) * [-1, 1, 1, -1][x[1]]);
+                context.shape({x: center.x, y: center.y + 128, d: 45, r: 24, v: 4, bold: 2, fx, fy: [2, 2, -2, -2]});
 
                 if (parsent == 1) {
-                    gameTick.data.frame += 0.38; // speed
+                    gameTick.data.frame += 0.23; // speed
 
                     if (Math.random() > 0.4) {
-                        context.text({ x: center.x, y: center.y + 180, text: 'Completed', font: 'Haettenschweiler', px: 18});
+                        context.text({x: center.x, y: center.y + 180, text: 'Completed', font: 'Haettenschweiler', px: 18});
                     }
 
                     context.globalAlpha = gameTick.data.frame / 11;
                     context.beginPath();
-                    context.fillStyle = '#1c1c1e';
+                    context.fillStyle = '#141415';
                     context.fillRect(0, 0, width, height);
 
                     if (gameTick.data.frame > 30) {
@@ -732,6 +734,12 @@
                         }
                     });
                 }
+
+                context.glitch({
+                    x: 0, y: 0,
+                    width, height,
+                    level: 20, type: 'line'
+                });
             }
 
             if (negative) {
@@ -747,7 +755,34 @@
             // if (keyBuffer[32]) context.gray(canvas); // ok
         };
 
-        gameLoop = setInterval(main, fps);
+        const proposal = document.getElementById('proposal');
+        const gameArea = document.getElementById('game-area');
+        const goButton = document.getElementById('go-button');
+        const goContent = document.getElementById('go-content');
+
+        setTimeout(() => {
+            proposal.classList.add('feed-in');
+            goContent.classList.add('feed-in');
+
+            goButton.addEventListener('click', () => {
+                goContent.style.pointerEvents = 'none';
+                proposal.classList.remove('feed-in');
+                goContent.classList.remove('feed-in');
+
+                proposal.classList.add('feed-out');
+                goContent.classList.add('feed-out');
+
+                setTimeout(() => {
+                    onGlitch = document.getElementById('glitch').checked;
+                    gameArea.classList.add('feed-in');
+                    setTimeout(() => {
+                        gameArea.style.opacity = 1;
+                        gameArea.classList.remove('feed-in');
+                        setTimeout(() => gameLoop = setInterval(main, fps), 300);
+                    }, 1000);
+                }, 1000);
+            });
+        }, 700);
     };
 
     window.onload = init;

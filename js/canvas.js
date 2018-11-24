@@ -188,12 +188,14 @@ Renderer.prototype.noise = function (status) {
 }
 
 Renderer.prototype.glitch = function (status) {
+    if (!onGlitch) {
+        return false;
+    }
+
     let x = status.x || 0;
     let y = status.y || 0;
-
     let width = status.w || status.width || 32;
     let height = status.h || status.height || 32;
-
     let level = status.level || 1;
 
     let image = this.getImageData(x, y, width, height);
@@ -240,24 +242,20 @@ Renderer.prototype.glitch = function (status) {
         case 'line':
             let w = image.width;
             let h = image.height;
-
-            let yPos = new Array(h).fill(0).map((x, y) => y);
-            let ids = [];
-
-            for (let i = 0; i < level; i ++) {
-                ids.push(yPos.random(true));
-            }
+            let yPos = new Array(h).fill(0).map((...x) => x[1]);
+            let ids = new Array(level).fill(0).map(_ => 4 * yPos.random(true) * w);
 
             ids.map(id => {
-                let dy = -level + Math.random() * (level * 2);
+                let dy = (-level + Math.random() * (level * 2)) >> 0;
 
-                for (let i = id * w;; j < w; j ++) {
-                    let k = i * 4;
-                    [data[k], data[k + dy * w]] = [data[k + dy * w], data[i]];
-                    [data[k], data[k + 1 + dy * w]] = [data[k + 1 + dy * w], data[i]];
-                    [data[k], data[k + 2 + dy * w]] = [data[k + 2 + dy * w], data[i]];
+                for (let i = id, l = id + w * 4; i < l; i += 4) {
+                    [data[i], data[i + dy * w]] = [data[i + dy * w], data[i]];
+                    [data[i + 1], data[i + 1 + dy * w]] = [data[i + 1 + dy * w], data[i + 1]];
+                    [data[i + 2], data[i + 2 + dy * w]] = [data[i + 2 + dy * w], data[i + 2]];
                 }
             });
+
+            // console.table(ids);
             break;
     }
 

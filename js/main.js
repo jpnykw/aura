@@ -438,6 +438,10 @@
             }
         };
 
+        // 右クリック禁止
+        document.oncontextmenu = () => false;
+
+        // バックグラウンド判定
         document.addEventListener('webkitvisibilitychange', _ => {
             isBackground = document.webkitHidden;
             keyBuffer[27] = isBackground && !gameTick.pause.status >> 0;
@@ -670,12 +674,12 @@
                             }
                         });
                     } else {
-                        // context.noise({
-                        //     x: 0, y:0,
-                        //     width, height,
-                        //     level: 25, gray: true,
-                        //     alpha: 10
-                        // });
+                        context.noise({
+                            x: 0, y:0,
+                            width, height,
+                            level: 13, gray: true,
+                            alpha: 10
+                        });
 
                         context.glitch({
                             x: 0, y: 0,

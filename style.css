@@ -1,0 +1,143 @@
+body {
+    background: #141415;
+    background-image: radial-gradient(#101011 12%, transparent 0), radial-gradient(#101011 12%, transparent 0);
+    background-position: 0 0, 10px 10px;
+    background-size: 10px 10px;
+
+    text-align: center;
+    overflow: hidden;
+    color: #e3e3e1;
+
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+}
+
+a {
+    color: #e3e3e1;
+    text-decoration: none;
+}
+
+canvas {
+    background: #141415;
+    box-shadow: 0 0 30px 12px #121213;
+}
+
+button {
+    width: 100px;
+    padding: 5px;
+
+    position: relative;
+    left: 4px;
+
+    background: rgba(0, 0, 0, 0);
+    font-size: 30px;
+    color: #e3e3e1;
+
+    border: 0;
+    cursor: pointer;
+    transition: 0.4s;
+}
+
+button:hover {
+    box-shadow: inset 0 -1px 0 0 #e3e3e1;
+}
+
+button:focus {
+    outline: 0 !important;
+}
+
+.center {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+
+    transform: translate(-50%, -50%);
+}
+
+.game-area {
+    opacity: 0;
+}
+
+.footer {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+
+    width: 100%;
+    height: 40px;
+    background: #232330;
+}
+
+.footer p {
+    color: #e3e3e1;
+    position: relative;
+    bottom: 5px;
+}
+
+.proposal {
+    font-size: 30px;
+    opacity: 0;
+
+    position: absolute;
+    bottom: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+}
+
+.proposal span {
+    margin: 0 10px;
+}
+
+.proposal p {
+    font-size: 15px;
+    margin-top: 0;
+
+    position: relative;
+    left: 4px;
+}
+
+.go-content {
+    opacity: 0;
+}
+
+.go-content input{
+    margin-right: 10px;
+    position: relative;
+    top: 2px;
+}
+
+.feed-in {
+    animation-name: feed-in;
+    animation-duration: 1.8s;
+    animation-fill-mode: forwards;
+}
+
+.feed-out {
+    animation-name: feed-out;
+    animation-duration: 0.5s;
+    animation-fill-mode: forwards;
+}
+
+@keyframes feed-in {
+    from {
+        display: block;
+        opacity: 0;
+    }
+
+    to {
+        opacity: 1;
+    }
+}
+
+@keyframes feed-out {
+    from {
+        opacity: 1;
+    }
+
+    to {
+        display: none;
+        opacity: 0;
+    }
+}

@@ -10,6 +10,15 @@ Number.prototype.toRadian = function () {
 
 // Array method
 
+Array.prototype.getDirection = function () {
+    let x = this[0];
+    let y = this[1];
+    let xx = this[2];
+    let yy = this[3];
+
+    return Math.atan2(y - yy, x - xx);
+}
+
 Array.prototype.last = function () {
     return this[this.length - 1];
 }

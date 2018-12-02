@@ -48,6 +48,13 @@ button:focus {
     outline: 0 !important;
 }
 
+input {
+    display: none;
+}
+
+/* test */
+
+
 .center {
     position: absolute;
     left: 50%;

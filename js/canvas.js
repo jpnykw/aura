@@ -149,7 +149,7 @@ Renderer.prototype.negative = function (status) {
     this.putImageData(image, x, y);
 }
 
-Renderer.prototype.noise = function (status) {
+Renderer.prototype.noise = function (status) { // it was used many memories 1st in methods
     let x = status.x || 0;
     let y = status.y || 0;
 
@@ -187,7 +187,7 @@ Renderer.prototype.noise = function (status) {
     this.putImageData(image, x, y);
 }
 
-Renderer.prototype.glitch = function (status) {
+Renderer.prototype.glitch = function (status) { // it was used memories 2nd place in methods
     if (!onGlitch) {
         return false;
     }
@@ -254,8 +254,6 @@ Renderer.prototype.glitch = function (status) {
                     [data[i + 2], data[i + 2 + dy * w]] = [data[i + 2 + dy * w], data[i + 2]];
                 }
             });
-
-            // console.table(ids);
             break;
     }
 

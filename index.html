@@ -4,6 +4,7 @@
         <meta charset="UTF-8">
         <title>AURA</title>
 
+        <!-- import assets of font-awesome from server (didn't works in local) -->
         <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.5.0/css/all.css" integrity="sha384-B4dIYHKNBt8Bc12p+WXckhzcICo0wtJAoU8YZTY5qE0Id1GSseTk6S+L3BlXeVIU" crossorigin="anonymous">
         <link rel="stylesheet" href="style.css">
     </head>
@@ -13,7 +14,15 @@
 
         <div id="go-content" class="go-content center">
             <p><button id="go-button">GO</button></p>
-            <p title="Toggle glitch effect"><input id="glitch" type="checkbox"checked>glitch</p>
+            <p title="Toggle glitch effect">
+                <input id="glitch" type="checkbox" checked>
+                <label for="glitch"></label>
+
+                <!-- <label for="glitch">
+                    <input id="glitch" type="checkbox"checked>glitch
+                    <p class="checkbox"></p>
+                </label> -->
+            </p>
         </div>
 
         <div id="proposal" class="proposal">

@@ -4,7 +4,6 @@
 
         // Usefull method
         const getTimeStamp = _ => new Date().getTime();
-
         const getDistance = (r, x, y, x2, y2) => Math.pow(x - x2, 2) + Math.pow(y - y2, 2) < r * r;
 
         // Variables
@@ -109,7 +108,7 @@
 
         let enemyDataset = null;
         let xhr = new XMLHttpRequest();
-        xhr.onreadystatechange = () => {
+        xhr.onreadystatechange = _ => {
             if (xhr.readyState == 4) {
                 let json = JSON.parse(xhr.responseText);
                 enemyDataset = json;
@@ -120,11 +119,13 @@
         xhr.send(null);
 
         let enemies = [];
-        let bullets = [];
+        /* let */ bullets = []; // test change to global scope
 
         window.onGlitch = true;
         window.negative = false;
         window.gameLoop = null;
+        // test flag
+        window.flag = false;
 
         const gameTitle = (alpha) => {
             let beforeAlpha = context.globalAlpha;
@@ -162,18 +163,8 @@
 
             if (alpha !== undefined) context.globalAlpha = beforeAlpha;
 
-            context.glitch({
-                x: 0, y: 0,
-                width, height,
-                level: startDelay * 1.1
-            });
-
-            context.glitch({
-                x: 0, y: 0,
-                width, height,
-                level: 4 + startDelay * 2.7 + (Math.random() * (2 * (startDelay + 0.3))) >> 0,
-                type: 'box'
-            });
+            context.glitch({x: 0, y: 0, width, height, level: startDelay * 1.4});
+            context.glitch({x: 0, y: 0, width, height, level: 5 + startDelay * 2.7 + (Math.random() * (2 * (startDelay + 0.3))) >> 0, type: 'box'});
         };
 
         const gameControll = _ => {
@@ -206,8 +197,26 @@
 
                 default:
                     if (enemies.length == 0 && gameTick.stage < 10) {
-                        console.log('OK');
-                        updateStage();
+                        if (flag == false) {
+                            console.log('call last', getTimeStamp());
+                            flag = true;
+                            setTimeout(() => {
+                                bullets.map(data => {
+                                    if (data.type) {
+                                        data.disappear = 2;
+                                        console.log('disappear');
+                                    }
+                                });
+
+                                // isDisableBullet(1);
+                                console.log('OK', getTimeStamp());
+                                updateStage();
+                                flag = true;
+                            }, 5000);
+                        }
+
+                        // console.log('OK');
+                        // updateStage();
                     }
                     break;
             }
@@ -308,7 +317,8 @@
             }
 
             if (guiStatus.shift) {
-                context.circle({x: myself.body.x, y: myself.body.y, r: 3, color: '#2e2e2e'});
+                // draw my core
+                context.circle({x: myself.body.x, y: myself.body.y, r: 2.4, color: '#ccc'});
                 context.circle({x: myself.body.x, y: myself.body.y, r: 4, bold: 0.7});
             }
 
@@ -438,10 +448,17 @@
             }
         };
 
-        // 右クリック禁止
-        document.oncontextmenu = () => false;
+        // count bullets of any type
+        /*const */ isDisableBullet = type => {
+            let counter = 0;
+            bullets.map(data => counter += data.type == type);
+            return counter == 0; // even equal zero, they are disabled.
+        }
 
-        // バックグラウンド判定
+        // lock right click
+        document.oncontextmenu = _ => false;
+
+        // check running on background the tab (no active ditect)
         document.addEventListener('webkitvisibilitychange', _ => {
             isBackground = document.webkitHidden;
             keyBuffer[27] = isBackground && !gameTick.pause.status >> 0;
@@ -597,8 +614,13 @@
                             myself.shot.timestamp = getTimeStamp();
                         }
 
-                        // 更新
+                        // update drawn dataset
+                        let deLog = keyBuffer[68];
+
                         bullets.map(data => {
+                            if (deLog) {
+                                console.log(data.type, data.x, data.y, data.disappear);
+                            }
                             data.update();
                         });
 
@@ -624,7 +646,7 @@
                             if (bullet.type) {
                                 // enemiy's bullet
                                 if (getDistance(6, x, y, myself.body.x, myself.body.y)) {
-                                    bullets[bulletID].disappear = 2;
+                                    bullets[bulletID].disappear = 1;
                                 }
                             } else {
                                 // player's bullet
@@ -632,7 +654,7 @@
                                     if (enemy.body.disappear != 0) return;
 
                                     if (getDistance(enemy.body.hitArea, x, y, enemy.body.x, enemy.body.y)) {
-                                        bullets[bulletID].disappear = 2;
+                                        bullets[bulletID].disappear = 1;
                                         enemies[enemyID].body.hp --;
 
                                         if (enemies[enemyID].body.hp < 0) {
@@ -656,14 +678,16 @@
                             if (data.body.aura != undefined) {
                                 let body = data.body;
                                 if (getDistance(body.aura, body.x, body.y, myself.body.x, myself.body.y)) {
-                                    // console.log('[DEBUG]\n私のオーラに触れたな…\n貴様の体は只では済まない…');
+                                    // into his area
                                 }
                             }
                         });
 
                         // 削除
                         bullets.map((data, index) => {
-                            if (data.disappear == 2) {
+                            if (data.disappear == 1) {
+                                // todo
+                                // 消滅のエフェクトを実装
                                 bullets.splice(index, 1);
                             }
                         });
@@ -677,7 +701,7 @@
                         context.noise({
                             x: 0, y:0,
                             width, height,
-                            level: 13, gray: true,
+                            level: 18, gray: true,
                             alpha: 10
                         });
 

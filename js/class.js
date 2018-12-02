@@ -11,23 +11,26 @@ class Character {
     }
 
     checkOverArea () {
-        let disappear = this.disappear;
-
+        // let disappear = this.disappear;
         let r = this.r || 10;
         let max = 512 + r;
         let min = -r;
 
-        switch (disappear) {
+        // console.log('| GARD |');
+
+        switch (this.disappear) {
             case -1:
-                disappear += (min < this.x && max > this.x && min < this.y && max > this.y);
+                this.disappear += min < this.x && max > this.x && min < this.y &&  max > this.y;
+                // console.log('INTO SAFE AREA');
                 break;
 
             case 0:
-                disappear += !(min < this.x && max > this.x && min < this.y && max > this.y) * 2;
+                this.disappear += 2 * (min > this.x || max < this.x || min > this.y || max < this.y);
+                // console.log('OUTGO SAFE AREA');
                 break;
         }
 
-        this.disappear = disappear;
+        // this.disappear = disappear;
     }
 }
 
@@ -56,7 +59,7 @@ class Enemy extends Character {
         switch (this.id) {
             case 0:
                 this.hitArea = 20;
-                this.hp = 10;
+                this.hp = 6;
                 this.r = 15;
 
                 this.shot.interval = 30;
@@ -186,6 +189,9 @@ class Enemy extends Character {
 class Bullet extends Character {
     constructor (status) {
         super(status);
+
+        this.r = 5;
+        this.type = this.type || 0;
     }
 
     draw (context) {

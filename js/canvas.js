@@ -1,4 +1,4 @@
-const Renderer = CanvasRenderingContext2D;
+let Renderer = CanvasRenderingContext2D;
 
 Renderer.prototype.shape = function (status) {
     if (status.v < 3) {
@@ -152,13 +152,11 @@ Renderer.prototype.negative = function (status) {
 Renderer.prototype.noise = function (status) {
     let x = status.x || 0;
     let y = status.y || 0;
-
     let width = status.w || status.width || 32;
     let height = status.h || status.height || 32;
 
     let gray = status.gray || false;
     let level = status.level || 1;
-
     let alpha = status.alpha || 0;
 
     let image = this.getImageData(x, y, width, height);
@@ -188,16 +186,14 @@ Renderer.prototype.noise = function (status) {
 }
 
 Renderer.prototype.glitch = function (status) {
-    if (!onGlitch) {
-        return false;
-    }
+    if (!onGlitch) return false;
 
     let x = status.x || 0;
     let y = status.y || 0;
     let width = status.w || status.width || 32;
     let height = status.h || status.height || 32;
-    let level = status.level || 1;
 
+    let level = status.level || 1;
     let image = this.getImageData(x, y, width, height);
     let data = image.data;
 
@@ -265,7 +261,6 @@ Renderer.prototype.glitch = function (status) {
 Renderer.prototype.lightness = function (level, canvas) {
     let height = canvas.height || 255;
     let width = canvas.width || 255;
-
     let image = this.getImageData(0, 0, width, height);
     let data = image.data;
 
@@ -294,4 +289,60 @@ Renderer.prototype.gray = function (canvas) {
     }
 
     this.putImageData(image, 0, 0);
+}
+
+Renderer.prototype.shake = function (canvas, level) {
+    let height = canvas.height;
+    let width = canvas.width;
+
+    let image = this.getImageData(0, 0, width, height);
+    let data = image.data;
+
+    let dx = -level * ((Math.random() * level * 2) >> 0);
+    let dy = -level * ((Math.random() * level * 2) >> 0);
+
+    for (let i = 0; i < data.length; i += 4) {
+        let id = i + 4 * (image.width * dy + dx);
+
+        data[i] = data[id];
+        data[i + 1] = data[id + 1];
+        data[i + 2] = data[id + 2];
+    }
+
+    this.putImageData(image, 0, 0);
+}
+
+// test
+Renderer.prototype.swing = function (status) {
+    // let image = this.getImageData(0, 0, 512, 512);
+    this.save();
+
+    let speed = status.speed;
+    let dir = status.dir;
+    let fps = 1000 / 30;
+
+    let theta = 0;
+    let flag = true;
+    let loop = setInterval(() => {
+        // this.translate(256, 256);
+        // this.rotate(theta * Math.PI / 180);
+        // this.clearRect(0, 0, 512, 512);
+        // this.putImageData(image, 0, 0);
+        // this.translate(-256, -256);
+
+        // this.style.transform = `rotate(${Math.random() <= 0.5 ? -theta : theta}deg)`;
+        theta += ((flag ? dir : 0) - theta) / speed;
+
+        if (flag && Math.abs(theta - dir) < 1.5) {
+            flag = false;
+        }
+
+        if (!flag && theta < .1) {
+            clearInterval(loop);
+            console.log('meow :cat:');
+            // this.style.transform = 'rotate(0deg)';
+
+            this.restore();
+        }
+    }, fps);
 }

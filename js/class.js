@@ -186,6 +186,9 @@ class Enemy extends Character {
 class Bullet extends Character {
     constructor (status) {
         super(status);
+
+        this.limitTime = 10000;
+        this.spawnTime = new Date().getTime();
     }
 
     draw (context) {
@@ -198,7 +201,7 @@ class Bullet extends Character {
         }
     }
 
-    update () {
+    update (timeStamp) {
         this.move(this.dx, this.dy);
 
         if (this.mdx !== undefined && Math.abs(this.dx - this.mdx) < 0.1) {
@@ -214,5 +217,10 @@ class Bullet extends Character {
         }
 
         this.checkOverArea();
+
+        if (this.disappear == -1 && (timeStamp - this.spawnTime) > this.limitTime) {
+            console.log('[LOG] Destroy the bullet out limit');
+            this.disappear = 2;
+        }
     }
 }

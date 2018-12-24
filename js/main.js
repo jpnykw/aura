@@ -4,23 +4,20 @@
 
         // Usefull method
         const getTimeStamp = _ => new Date().getTime();
-
         const getDistance = (r, x, y, x2, y2) => Math.pow(x - x2, 2) + Math.pow(y - y2, 2) < r * r;
 
         // Variables
-        const bootedTime = getTimeStamp();
-        const fps = 1000 / 30;
-
         /* const */ canvas = document.getElementById('game');
         /* const */ context = canvas.getContext('2d');
-
+        const bootedTime = getTimeStamp();
+        const fps = 1000 / 30;
         let height = 512;
         let width = 512;
 
         canvas.height = height;
         canvas.width = width;
 
-        let myself = {
+        const myself = {
             body: new Player({
                 x: 255, y: 480,
                 size: 300
@@ -32,15 +29,16 @@
             },
 
             speed: 5,
-            shift: 2
+            shift: 2,
+            alive: true
         }
 
-        let center = {
+        const center = {
             x: width / 2,
             y: height / 2
         };
 
-        gameTick = {
+        const gameTick = {
             stage: 0,
             frame: 0,
             steps: 0,
@@ -57,7 +55,7 @@
             }
         };
 
-        let guiStatus = {
+        const guiStatus = {
             frame: 600,
             brightness: -6,
             bgAlpha: 0.18,
@@ -119,14 +117,14 @@
         xhr.open('GET', './json/enemy.json');
         xhr.send(null);
 
-        let enemies = [];
-        let bullets = [];
+        const enemies = [];
+        const bullets = [];
 
         window.onGlitch = true;
         window.negative = false;
         window.gameLoop = null;
 
-        const gameTitle = (alpha) => {
+        const gameTitle = alpha => {
             let beforeAlpha = context.globalAlpha;
 
             if (alpha !== undefined) {
@@ -205,7 +203,7 @@
                     break;
 
                 default:
-                    if (enemies.length == 0 && gameTick.stage < 10) {
+                    if (enemies.length == 0 && bullets.length == 0 && gameTick.stage < 10) {
                         console.log('OK');
                         updateStage();
                     }
@@ -216,7 +214,6 @@
         const updateStage = _ => {
             if (gameTick.stage > 0) {
                 console.log(`[LOG] Setup ID:${gameTick.stage}`);
-                enemies = [];
 
                 let calc = (formula, regexp, replace, trace) => {
                     let stack = `${formula}`.replace(regexp, replace);
@@ -535,9 +532,7 @@
                     }
 
                     // 描画
-                    bullets.map(data => {
-                        data.draw(context);
-                    });
+                    bullets.map(data => data.draw(context));
 
                     enemies.map(data => {
                         if (data.body.disable) {
@@ -598,9 +593,7 @@
                         }
 
                         // 更新
-                        bullets.map(data => {
-                            data.update();
-                        });
+                        bullets.map(data => data.update(getTimeStamp()));
 
                         enemies.map(data => {
                             if (!data.body.disable) {
@@ -623,8 +616,10 @@
 
                             if (bullet.type) {
                                 // enemiy's bullet
-                                if (getDistance(6, x, y, myself.body.x, myself.body.y)) {
+                                if (myself.alive && getDistance(6, x, y, myself.body.x, myself.body.y)) {
                                     bullets[bulletID].disappear = 2;
+                                    console.log('いたいよ😢😢');
+                                    canvas.rotate(9, 2.4, 33);
                                 }
                             } else {
                                 // player's bullet
@@ -757,6 +752,7 @@
 
             // test gray scale
             // if (keyBuffer[32]) context.gray(canvas); // ok
+            if (keyBuffer[32]) context.shake(canvas, 4);
         };
 
         const proposal = document.getElementById('proposal');

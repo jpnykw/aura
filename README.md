@@ -15,7 +15,4 @@ you must be accept local file access by administrator.
 1. Add to startup options of Google Chrome.  
 `--allow-file-access-from-files`
 
-2. Run at command after kill your task of Google Chrome.  
-`chrome.exe --disable-web-security --user-data-dir`
-
-3. Open the `index.html`.
+2. Open the `index.html`.

@@ -58,7 +58,7 @@ Element.prototype.rotate = function (dir, speed, fps) {
         if (!flag && theta < .1) {
             clearInterval(loop);
             this.style.transform = 'rotate(0deg)';
-            console.log('にゃってり');
+            // console.log('にゃってり');
         }
     };
 

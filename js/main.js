@@ -605,7 +605,7 @@
                             }
                         });
 
-                        // 当たり判定
+                        // check hitting objects
                         let isHitEnemy = false;
 
                         bullets.map((bullet, bulletID) => {
@@ -618,7 +618,7 @@
                                 // enemiy's bullet
                                 if (myself.alive && getDistance(6, x, y, myself.body.x, myself.body.y)) {
                                     bullets[bulletID].disappear = 2;
-                                    console.log('いたいよ😢😢');
+                                    // console.log('いたいよ😢😢');
                                     canvas.rotate(9, 2.4, 33);
                                 }
                             } else {
@@ -752,7 +752,7 @@
 
             // test gray scale
             // if (keyBuffer[32]) context.gray(canvas); // ok
-            if (keyBuffer[32]) context.shake(canvas, 4);
+            // if (keyBuffer[32]) context.shake(canvas, 4); // turn off
         };
 
         const proposal = document.getElementById('proposal');

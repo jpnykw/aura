@@ -40,6 +40,7 @@ class Player extends Character {
         let size = this.size;
         context.shape({x: this.x, y: this.y + 10, d: 270, r: size, v: 3, bold: 1.3, color: '#2e2e2e', fv: [size / 1.5, size / -3, size / -3]});
         context.shape({x: this.x, y: this.y + 5, d: 270, r: size, v: 3, bold: 0.7, fv: [size / 1.5, size / -3, size / -3]});
+        context.shape({x: this.x, y: this.y + 5, d: 270, r: size / 1.3, v: 3, fv: [size / 1.9, size / -2.8, size / -2.8]});
     }
 }
 
@@ -90,7 +91,7 @@ class Enemy extends Character {
         this.shot.tick = this.shot.interval;
     }
 
-    draw (context) {
+    draw (context, pause) {
         let x = this.x;
         let y = this.y;
         let d = this.d || 0;
@@ -135,23 +136,32 @@ class Enemy extends Character {
             if (this.effectTick == undefined) {
                 this.effectTick = 0;
 
-                this.effects = new Array(6).fill(null).map(_ => {
+                this.effects = new Array(8).fill(null).map(_ => {
                     let dx = -1 + (Math.random() * 2);
                     let dy = -1 + (Math.random() * 2);
                     return {dx, dy};
                 });
             }
 
-            let speed = this.effectTick * 3.7;
+            let speed = (this.effectTick + 2) * 9;
+            r = 210 / speed;
 
+            // context.globalCompositeOperation = 'lighter';
             this.effects.map(pos => {
                 let dx = pos.dx * speed;
                 let dy = pos.dy * speed;
-                context.circle({x: x + dx, y: y + dy, r, color: '#26afff'});
-                context.circle({x: x + dx, y: y + dy, r: r * 0.86, color: '#2e2e2e'});
+                context.circle({x: x + dx, y: y + dy, r, color: '#26afff9c'});
+
+                context.globalCompositeOperation = 'lighter';
+                context.circle({x: x + dx, y: y + dy, r: r * 0.7, color: '#2e2e2ecc'});
+
+                dx *= -1.7;
+                dy *= -1.7;
+                context.circle({x: x + dx, y: y + dy, r: r * 0.86, bold: 0.5, color: '#e3e3e1e6'});
             });
 
-            this.effectTick ++;
+            context.globalCompositeOperation = 'source-over';
+            if (!pause) this.effectTick ++;
         }
     }
 
@@ -166,7 +176,7 @@ class Enemy extends Character {
             this.shot.tick = Infinity;
 
             this.bold += -this.bold / 5;
-            this.r += -this.r / 4;
+            this.r += -this.r / 12;
 
             if (this.r < 0.1) {
                 this.disappear = 2;

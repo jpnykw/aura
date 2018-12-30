@@ -1,13 +1,10 @@
 let Renderer = CanvasRenderingContext2D;
 
 Renderer.prototype.shape = function (status) {
-    if (status.v < 3) {
-        return false;
-    }
+    if (status.v < 3) return false;
 
     let color = status.color || '#e3e3e1';
     let bold = status.bold || null;
-
     this.beginPath();
 
     if (bold == null) {
@@ -19,17 +16,14 @@ Renderer.prototype.shape = function (status) {
 
     let x = status.x || 0;
     let y = status.y || 0;
-
     let d = status.d || status.direction || 0;
     let r = status.r || status.radius || 32;
-
     let v = status.v || status.vertex || 3;
 
     let zeroVertex = new Array(v).fill(0);
     let fv = status.fv || zeroVertex;
     let fx = status.fx || zeroVertex;
     let fy = status.fy || zeroVertex;
-
     let dis_theta = 360 / v;
     let theta = d;
 
@@ -61,7 +55,6 @@ Renderer.prototype.circle = function (status) {
     let x = status.x || 0;
     let y = status.y || 0;
     let r = status.r || status.radius || 32;
-
     let bold = status.bold || null;
     let color = status.color || '#e3e3e1';
 
@@ -87,13 +80,10 @@ Renderer.prototype.circle = function (status) {
 Renderer.prototype.text = function (status) {
     let x = status.x || 0;
     let y = status.y || 0;
-
     let bold = status.bold || null;
     let color = status.color || '#e3e3e1';
-
     let align = status.align || 'center';
     let text = status.text || 'NO TEXT DATA';
-
     let px = status.px || 16;
     let font = status.font || 'Arial';
 
@@ -113,7 +103,6 @@ Renderer.prototype.text = function (status) {
 Renderer.prototype.line = function (status) {
     let color = status.color || '#e3e3e1';
     let bold = status.bold || 1;
-
     let x = status.x || 0;
     let y = status.y || 0;
     let x2 = status.x2 || 0;
@@ -122,10 +111,8 @@ Renderer.prototype.line = function (status) {
     this.beginPath();
     this.lineWidth = bold;
     this.strokeStyle = color;
-
     this.moveTo(x, y);
     this.lineTo(x2, y2);
-
     this.closePath();
     this.stroke();
 }
@@ -133,10 +120,8 @@ Renderer.prototype.line = function (status) {
 Renderer.prototype.negative = function (status) {
     let x = status.x || 0;
     let y = status.y || 0;
-
     let width = status.w || status.width || 32;
     let height = status.h || status.height || 32;
-
     let image = this.getImageData(x, y, width, height);
     let data = image.data;
 
@@ -154,22 +139,18 @@ Renderer.prototype.noise = function (status) {
     let y = status.y || 0;
     let width = status.w || status.width || 32;
     let height = status.h || status.height || 32;
-
     let gray = status.gray || false;
     let level = status.level || 1;
     let alpha = status.alpha || 0;
-
     let image = this.getImageData(x, y, width, height);
     let data = image.data;
 
     if (gray) {
         for (let i = 0; i < data.length; i += 4) {
             let color = Math.random() * (level * 2) - level;
-
             data[i] += color;
             data[i + 1] += color;
             data[i + 2] += color;
-
             data[i + 3] = alpha || Math.random() * 255;
         }
     } else {
@@ -177,7 +158,6 @@ Renderer.prototype.noise = function (status) {
             data[i] += Math.random() * (level * 2) - level;
             data[i + 1] += Math.random() * (level * 2) - level;
             data[i + 2] += Math.random() * (level * 2) - level;
-
             data[i + 3] = alpha || Math.random() * 255;
         }
     }
@@ -207,7 +187,6 @@ Renderer.prototype.glitch = function (status) {
                 data[i] = data[i + redFix * 4];
                 data[i + 1] = data[i + 1 + greenFix * 4];
                 data[i + 2] = data[i + 2 + blueFix * 4];
-
                 data[i + 3] = 180;
             }
             break;
@@ -243,24 +222,21 @@ Renderer.prototype.glitch = function (status) {
 
             ids.map(id => {
                 let dy = (-level + Math.random() * (level * 2)) >> 0;
-
                 for (let i = id, l = id + w * 4; i < l; i += 4) {
                     [data[i], data[i + dy * w]] = [data[i + dy * w], data[i]];
                     [data[i + 1], data[i + 1 + dy * w]] = [data[i + 1 + dy * w], data[i + 1]];
                     [data[i + 2], data[i + 2 + dy * w]] = [data[i + 2 + dy * w], data[i + 2]];
                 }
             });
-
-            // console.table(ids);
             break;
     }
 
     this.putImageData(image, x, y);
 }
 
-Renderer.prototype.lightness = function (level, canvas) {
-    let height = canvas.height || 255;
-    let width = canvas.width || 255;
+Renderer.prototype.lightness = function (level) {
+    let height = this.canvas.height;
+    let width = this.canvas.width;
     let image = this.getImageData(0, 0, width, height);
     let data = image.data;
 
@@ -273,9 +249,9 @@ Renderer.prototype.lightness = function (level, canvas) {
     this.putImageData(image, 0, 0);
 }
 
-Renderer.prototype.gray = function (canvas) {
-    let height = canvas.height;
-    let width = canvas.width;
+Renderer.prototype.gray = function () {
+    let height = this.canvas.height;
+    let width = this.canvas.width;
 
     let image = this.getImageData(0, 0, width, height);
     let data = image.data;
@@ -289,4 +265,8 @@ Renderer.prototype.gray = function (canvas) {
     }
 
     this.putImageData(image, 0, 0);
+}
+
+Renderer.prototype.move = function (dx, dy) {
+
 }

@@ -101,7 +101,7 @@ button:focus {
     margin-bottom: 10px;
 
     position: relative;
-    left: 3px;
+    left: 0.5px;
 }
 
 .proposal p:last-child {

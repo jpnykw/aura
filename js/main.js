@@ -28,8 +28,8 @@
                 timestamp: getTimeStamp()
             },
 
-            speed: 5,
-            shift: 2,
+            speed: 7,
+            shift: 4,
             alive: true
         }
 
@@ -38,10 +38,12 @@
             y: height / 2
         };
 
-        const gameTick = {
+        /* const */ gameTick = {
             stage: 0,
             frame: 0,
             steps: 0,
+
+            boss: false,
             ready: false,
 
             pause: {
@@ -76,6 +78,17 @@
                 {size: 700, goto: 440, vertex: 4, direction: 0, accelSpeed: 5, steps: [2]},
             ]
         };
+
+        /* const */ boss = {
+            hp: null,
+            maxHp : null,
+            pattern: null,
+            init: () => {
+                boss.maxHp = 100;
+                boss.hp = boss.maxHp;
+                boss.pattern = [];
+            }
+        }
 
         let isBackground = false;
         let gameTitleAlpha = 1;
@@ -179,7 +192,6 @@
                 case 0:
                     if (gameTick.ready) {
                         let bool = keyBuffer[90] == 1 && gameTick.frame > 50;
-
                         startDelay += -0.63 * (1 - bool * 2);
                         startDelay = startDelay < 0 ? 0 : startDelay;
 
@@ -204,7 +216,7 @@
 
                 default:
                     if (enemies.length == 0 && bullets.length == 0 && gameTick.stage < 10) {
-                        console.log('OK');
+                        console.log('[LOG] Reflesh all bullets');
                         updateStage();
                     }
                     break;
@@ -235,30 +247,18 @@
                             for (let i = 0, l = data.repeat; i < l; i ++) {
                                 x = calc(data.x, /c(enter)?x/gi, center.x, true);
                                 y = calc(data.y, /c(enter)?y/gi, center.y, true);
-
                                 x = calc(x, /max/gi, width, true);
                                 y = calc(y, /max/gi, height, true);
-
                                 x = calc(x, /i/gi, i);
                                 y = calc(y, /i/gi, i);
 
                                 delay = data.delay;
                                 delay = calc(delay, /i/gi, i);
-
-                                enemies.push({
-                                    body: new Enemy({
-                                        x, y,
-                                        dx, dy,
-                                        id, disable: true
-                                    }),
-
-                                    delay
-                                });
+                                enemies.push({body: new Enemy({x, y, dx, dy, id, disable: true}), delay});
                             }
                         } else {
                             x = calc(data.x, /c(enter)?x/gi, center.x);
                             y = calc(data.y, /c(enter)?y/gi, center.y);
-
                             x = calc(x, /max/gi, width, true);
                             y = calc(y, /max/gi, height, true);
 
@@ -276,10 +276,7 @@
                 }
             }
 
-            enemies.map(data => {
-                data.time = getTimeStamp();
-            });
-
+            enemies.map(data => data.time = getTimeStamp());
             gameTick.stage ++;
         };
 
@@ -296,6 +293,8 @@
         };
 
         const gameGui = _ => {
+            // context.globalCompositeOperation = 'destination-over';
+
             if (guiStatus.frame - 480 > 0.1) {
                 guiStatus.frame += (480 - guiStatus.frame) / 12;
 
@@ -309,8 +308,34 @@
                 context.circle({x: myself.body.x, y: myself.body.y, r: 4, bold: 0.7});
             }
 
-            // context.shape({x: center.x, y: center.y, d: 0, r: guiStatus.frame, v: 4, bold: 0.5});
             context.text({x: center.x, y: height - 5, text: `0000000000${score}`.slice(-10), font: 'Haettenschweiler', px: 11});
+
+            if (gameTick.boss) {
+                let top = 10;
+                let bold = 20;
+                let length = 280;
+                let y = top + bold;
+                let dx = length / boss.maxHp * boss.hp;
+                let leftX = center.x - length / 2;
+                let rightX = center.x + length / 2;
+
+                context.beginPath();
+                context.lineWidth = bold;
+                context.strokeStyle = '#f6f6f6';
+
+                context.lineCap = 'round';
+                context.moveTo(leftX, y);
+                context.lineTo(rightX, y);
+                context.stroke();
+
+                context.beginPath();
+                context.strokeStyle = '#310606';
+                context.lineWidth = bold / 1.2;
+
+                context.moveTo(leftX, y);
+                context.lineTo(leftX + dx, y);
+                context.stroke();
+            }
 
             if (gameTick.pause.status) {
                 context.globalAlpha = 0.4;
@@ -318,25 +343,22 @@
                 context.fillRect(0, 0, width, height);
 
                 context.globalAlpha = 0.92;
-
                 loadingShape();
 
                 context.text({x: center.x, y: center.y - 90, text: 'BREAK DOWN', font: 'Haettenschweiler', px: 15});
                 context.text({x: center.x, y: center.y + 100, text: `${(getTimeStamp() - bootedTime) * 255}`, font: 'Haettenschweiler', px: 15});
                 context.text({x: center.x, y: center.y + 10, text: `WAVE${gameTick.stage < 2 ? 1 : gameTick.stage - 1}`, font: 'Haettenschweiler', px: 20});
+
+                // if (gameTick.pause.status) context.gray();
             }
+
+            // context.globalCompositeOperation = 'source-over';
         };
 
         const audioSwitch = _ => {
             let playId = 0;
-
-            if (negative) {
-                playId = 1;
-            }
-
-            if (gameTick.pause.status) {
-                playId = 3;
-            }
+            if (negative) playId = 1;
+            if (gameTick.pause.status) playId = 3;
 
             audios.map((data, index) => {
                 if (index != playId) {
@@ -380,7 +402,6 @@
 
             let speed = null;
             let theta = null;
-
             let mdx = null;
             let mdy = null;
             let adx = null;
@@ -391,7 +412,6 @@
             switch (id) {
                 case 0:
                     speed = 3.2;
-
                     bullets.push(new Bullet({x, y: y + 15, dx: 0.8, dy: speed, adx: 0.1, ady: 0.2, type: 1}));
                     bullets.push(new Bullet({x, y: y + 15, dx: -0.8, dy: speed, adx: -0.1, ady: 0.2, type: 1}));
                     break;
@@ -407,7 +427,6 @@
 
                     speed = 9;
                     theta = Math.atan2((y + 256) - (myself.body.y + 256), (x + 256) - (myself.body.x + 256)).toDegree();
-
                     add(Math.cos((theta + 180).toRadian()) * speed, Math.sin((theta + 180).toRadian()) * speed);
                     add(Math.cos((theta + 185).toRadian()) * speed, Math.sin((theta + 185).toRadian()) * speed);
                     add(Math.cos((theta + 175).toRadian()) * speed, Math.sin((theta + 175).toRadian()) * speed);
@@ -415,7 +434,6 @@
 
                 case 2:
                     speed = 2.3;
-
                     bullets.push(new Bullet({x, y, dx: 0, dy: speed, type: 1}));
                     bullets.push(new Bullet({x, y, dx: 0, dy: -speed, type: 1}));
                     bullets.push(new Bullet({x, y, dx: speed, dy: 0, type: 1}));
@@ -424,11 +442,9 @@
 
                 case 3:
                     theta = Math.atan2((y + 256) - (myself.body.y + 256), (x + 256) - (myself.body.x + 256)).toDegree();
-
                     for (let i = 0; i < 5; i ++) {
                         dx = Math.cos((theta + 180).toRadian()) * ((i + 1) * 2);
                         dy = Math.sin((theta + 180).toRadian()) * ((i + 1) * 2);
-
                         bullets.push(new Bullet({x, y, dx, dy, type: 1}));
                     }
                     break;
@@ -488,10 +504,8 @@
             });
 
             if (gameTick.ready) {
-                // Gaming
                 alpha *= 1.6;
                 context.globalAlpha = alpha > 1 ? 1 : alpha;
-
                 myself.body.size += (17 - myself.body.size) / 8;
                 myself.body.draw(context);
 
@@ -515,12 +529,8 @@
 
                             if (!gameTick.pause.status) {
                                 let diffTimeStamp = timeStamp - gameTick.pause.time;
-                                console.log(diffTimeStamp);
-
                                 enemies.map(data => {
-                                    if (data.body.disable) {
-                                        data.time += diffTimeStamp;
-                                    }
+                                    if (data.body.disable) data.time += diffTimeStamp;
                                 });
                             } else {
                                 keyBuffer.fill(0);
@@ -533,75 +543,42 @@
 
                     // 描画
                     bullets.map(data => data.draw(context));
-
                     enemies.map(data => {
                         if (data.body.disable) {
                             data.body.disable = !(!gameTick.pause.status && timeStamp - data.time > data.delay);
                         } else {
-                            data.body.draw(context);
+                            data.body.draw(context, gameTick.pause.status);
                         }
                     });
 
                     gameGui();
 
                     if (!gameTick.pause.status) {
-                        // プレイヤー移動
                         let speed = myself.speed - myself.shift * shift;
                         let dx = ((keyBuffer[39] || 0) - (keyBuffer[37] || 0)) * speed;
                         let dy = ((keyBuffer[40] || 0) - (keyBuffer[38] || 0)) * speed;
                         myself.body.move(dx, dy);
 
                         let fix = 15;
+                        if (fix > myself.body.x)  myself.body.x = fix;
+                        if (width - fix < myself.body.x)  myself.body.x = width - fix;
+                        if (fix > myself.body.y) myself.body.y = fix;
+                        if (height - fix < myself.body.y) myself.body.y = height - fix;
 
-                        if (fix > myself.body.x) {
-                            myself.body.x = fix;
-                        }
-
-                        if (width - fix < myself.body.x) {
-                            myself.body.x = width - fix;
-                        }
-
-                        if (fix > myself.body.y) {
-                            myself.body.y = fix;
-                        }
-
-                        if (height - fix < myself.body.y) {
-                            myself.body.y = height - fix;
-                        }
-
-                        // 弾
                         if (keyBuffer[90] && getTimeStamp() - myself.shot.timestamp > myself.shot.interval) {
                             let length = 14;
-
-                            // 追加
-                            bullets.push(new Bullet({
-                                x: myself.body.x, y: myself.body.y - 20,
-                                dx: 0, dy: -length
-                            }));
-
-                            bullets.push(new Bullet({
-                                x: myself.body.x - 0.3, y: myself.body.y - 20,
-                                dx: -0.6 + 0.3 * shift, dy: -length
-                            }));
-
-                            bullets.push(new Bullet({
-                                x: myself.body.x + 0.3, y: myself.body.y - 20,
-                                dx: 0.6 - 0.3 * shift, dy: -length
-                            }));
-
+                            bullets.push(new Bullet({x: myself.body.x, y: myself.body.y - 20, dx: 0, dy: -length}));
+                            bullets.push(new Bullet({x: myself.body.x - 0.3, y: myself.body.y - 20, dx: -0.6 + 0.3 * shift, dy: -length}));
+                            bullets.push(new Bullet({x: myself.body.x + 0.3, y: myself.body.y - 20, dx: 0.6 - 0.3 * shift, dy: -length}));
                             myself.shot.timestamp = getTimeStamp();
                         }
 
-                        // 更新
                         bullets.map(data => data.update(getTimeStamp()));
 
                         enemies.map(data => {
                             if (!data.body.disable) {
                                 data.body.update();
-
-                                if (data.body.shot.tick == 0) {
-                                    addEnemyShot(data.body);
-                                }
+                                if (data.body.shot.tick == 0) addEnemyShot(data.body);
                             }
                         });
 
@@ -656,43 +633,42 @@
                             }
                         });
 
-                        // 削除
                         bullets.map((data, index) => {
-                            if (data.disappear == 2) {
-                                bullets.splice(index, 1);
-                            }
+                            if (data.disappear == 2) bullets.splice(index, 1);
                         });
 
                         enemies.map((data, index) => {
-                            if (data.body.disappear == 2) {
-                                enemies.splice(index, 1);
-                            }
+                            if (data.body.disappear == 2) enemies.splice(index, 1);
                         });
+
+                        // context.glitch({x: 0, y: 0, width, height, level: 50});
                     } else {
-                        context.noise({
-                            x: 0, y:0,
-                            width, height,
-                            level: 13, gray: true,
-                            alpha: 10
-                        });
-
-                        context.glitch({
-                            x: 0, y: 0,
-                            width, height,
-                            level: 6
-                        });
-
-                        context.glitch({
-                            x: 0, y: 0,
-                            width, height,
-                            level: 35, type: 'box'
-                        });
+                        context.noise({x: 0, y:0, width, height, level: 13, gray: true, alpha: 10});
+                        context.glitch({x: 0, y: 0, width, height, level: 6});
+                        context.glitch({x: 0, y: 0, width, height, level: 35, type: 'box'});
                     }
+                } else {
+                    for (let i = 0; i < 4; i++) {
+                        let fix = (i + 1) * 23;
+                        let x = (Math.random() * width) >> 0;
+                        let y = (Math.random() * height) >> 0;
+                        let w = (Math.random() * (width - x - fix)) >> 0;
+                        let h = (Math.random() * (height - y - fix)) >> 0;
+                        let level = 20 + (Math.random() * 40) >> 0;
+                        context.glitch({x, y, width: w, height: h, level});
+                    }
+                    // console.log('test');
                 }
             } else {
-                // Loading
-                loadingShape();
+                // context.globalCompositeOperation = 'lighter'; // test
+                if (gameTick.data.frame < 10 && Math.random() < 0.5) {
+                    // context.globalCompositeOperation = ['xor', 'destination-over'].random();
+                    context.globalCompositeOperation = 'xor';
+                } else {
+                    context.globalCompositeOperation = 'source-over';
+                }
 
+                loadingShape();
                 let barSize = 160;
                 let parsent = -0.8 + gameTick.data.onLoaded / 50;
                 parsent = parsent > 1 ? 1 : parsent;
@@ -705,10 +681,7 @@
 
                 if (parsent == 1) {
                     gameTick.data.frame += 0.23; // speed
-
-                    if (Math.random() > 0.4) {
-                        context.text({x: center.x, y: center.y + 180, text: 'Completed', font: 'Haettenschweiler', px: 18});
-                    }
+                    if (Math.random() > 0.4) context.text({x: center.x, y: center.y + 180, text: 'Completed', font: 'Haettenschweiler', px: 18});
 
                     context.globalAlpha = gameTick.data.frame / 11;
                     context.beginPath();
@@ -722,9 +695,7 @@
                         console.log('[LOG] Booted Ready');
                     }
                 } else {
-                    if (Math.random() > 0.45) {
-                        context.text({ x: center.x, y: center.y + 180, text: 'Loading', font: 'Haettenschweiler', px: 18});
-                    }
+                    if (Math.random() > 0.45) context.text({x: center.x, y: center.y + 180, text: 'Loading', font: 'Haettenschweiler', px: 18});
 
                     audios.map((audio, index) => {
                         if (!audiosPacket[index] && audio.readyState == 4) {
@@ -733,26 +704,15 @@
                         }
                     });
                 }
-
-                context.glitch({
-                    x: 0, y: 0,
-                    width, height,
-                    level: 20, type: 'line'
-                });
             }
 
-            if (negative) {
-                context.negative({
-                    x: 0, y: 0,
-                    width, height
-                });
-            }
+            if (negative) context.negative({x: 0, y: 0, width, height});
+            if (guiStatus.brightness != 0) context.lightness(guiStatus.brightness);
+            if (gameTick.pause.status) context.gray();
 
-            if (guiStatus.brightness != 0) context.lightness(guiStatus.brightness, canvas);
-
-            // test gray scale
-            // if (keyBuffer[32]) context.gray(canvas); // ok
-            // if (keyBuffer[32]) context.shake(canvas, 4); // turn off
+            // test glitch RGB
+            context.glitch({x: 0, y: 0, width, height, level: gameTick.ready ? 4 : 10});
+            context.glitch({x: 0, y: 0, width, height, level: gameTick.stage > 0 ? 9 : 14, type: 'line'});
         };
 
         const proposal = document.getElementById('proposal');

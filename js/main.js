@@ -2,9 +2,16 @@
     const init = _ => {
         console.log('[LOG] Initializing');
 
-        // Usefull method
+        // method
         const getTimeStamp = _ => new Date().getTime();
+
         const getDistance = (r, x, y, x2, y2) => Math.pow(x - x2, 2) + Math.pow(y - y2, 2) < r * r;
+
+        const destroyBullets = type => {
+            bullets.map((data, id) => {
+                if (data.type == type) data.disappear = 1;
+            });
+        };
 
         // Variables
         /* const */ canvas = document.getElementById('game');
@@ -18,13 +25,10 @@
         canvas.width = width;
 
         const myself = {
-            body: new Player({
-                x: 255, y: 480,
-                size: 300
-            }),
+            body: new Player({x: 255, y: 480, size: 300}),
 
             shot: {
-                interval: 160,
+                interval: 120,
                 timestamp: getTimeStamp()
             },
 
@@ -38,13 +42,14 @@
             y: height / 2
         };
 
-        /* const */ gameTick = {
+        const gameTick = {
             stage: 0,
             frame: 0,
             steps: 0,
 
             boss: false,
             ready: false,
+            addLastEnemy: false,
 
             pause: {
                 status: false,
@@ -60,18 +65,16 @@
         const guiStatus = {
             frame: 600,
             brightness: -6,
-            bgAlpha: 0.18,
+            bgAlpha: 0.22,
             shift: false,
 
             frames: [
                 {size: 800, goto: 220, vertex: 5, direction: 270, accelSpeed: 4, steps: [0]},
                 {size: 800, goto: 250, vertex: 5, direction: 270, accelSpeed: 5, steps: [0]},
                 {size: 800, goto: 280, vertex: 5, direction: 270, accelSpeed: 6, steps: [0]},
-
                 {size: 800, goto: 230, vertex: 5, direction: 270, accelSpeed: 4, steps: [0], color: '#26afff'},
                 {size: 800, goto: 260, vertex: 5, direction: 270, accelSpeed: 5, steps: [0], color: '#26afff'},
                 {size: 800, goto: 290, vertex: 5, direction: 270, accelSpeed: 6, steps: [0], color: '#26afff'},
-
                 {size: 700, goto: 490, vertex: 4, direction: 0, accelSpeed: 8, steps: [2], color: '#26afff'},
                 {size: 700, goto: 460, vertex: 4, direction: 0, accelSpeed: 7, steps: [2]},
                 {size: 700, goto: 450, vertex: 4, direction: 0, accelSpeed: 6, steps: [2]},
@@ -83,16 +86,17 @@
             hp: null,
             maxHp : null,
             pattern: null,
-            init: () => {
+            init: _ => {
                 boss.maxHp = 100;
                 boss.hp = boss.maxHp;
                 boss.pattern = [];
+                gameTick.boss = true;
             }
         }
 
-        let isBackground = false;
-        let gameTitleAlpha = 1;
         let score = 0;
+        let gameTitleAlpha = 1;
+        let isBackground = false;
 
         let keyBuffer = [];
         let startDelay = 0;
@@ -120,7 +124,7 @@
 
         let enemyDataset = null;
         let xhr = new XMLHttpRequest();
-        xhr.onreadystatechange = () => {
+        xhr.onreadystatechange = _ => {
             if (xhr.readyState == 4) {
                 let json = JSON.parse(xhr.responseText);
                 enemyDataset = json;
@@ -139,52 +143,17 @@
 
         const gameTitle = alpha => {
             let beforeAlpha = context.globalAlpha;
+            if (alpha !== undefined) context.globalAlpha = alpha;
 
-            if (alpha !== undefined) {
-                context.globalAlpha = alpha;
-            }
-
-            context.text({
-                x: center.x, y: 187,
-                bold: 2, color: '#23a8ff',
-                text: 'AURA', px: 230
-            });
-
-            context.text({
-                x: center.x, y: 180,
-                bold: 2, text: 'AURA', px: 230
-            });
-
-            context.text({
-                x: center.x, y: center.y + 82, color: '#1073b3',
-                text: 'HOLD Z KEY', font: 'Haettenschweiler', px: 15
-            });
-
-            context.text({
-                x: center.x, y: center.y + 80,
-                text: 'HOLD Z KEY', font: 'Haettenschweiler', px: 15
-            });
-
-            context.line({
-                x: center.x - startDelay * 3, y: center.y + 90,
-                x2: center.x + startDelay * 3, y2: center.y + 90,
-                bold: 1
-            });
+            context.text({x: center.x, y: 187, bold: 2, color: '#23a8ff', text: 'AURA', px: 230});
+            context.text({x: center.x, y: 180, bold: 2, text: 'AURA', px: 230});
+            context.text({x: center.x, y: center.y + 82, color: '#1073b3', text: 'HOLD Z KEY', font: 'Haettenschweiler', px: 15});
+            context.text({x: center.x, y: center.y + 80, text: 'HOLD Z KEY', font: 'Haettenschweiler', px: 15});
+            context.line({x: center.x - startDelay * 3, y: center.y + 90, x2: center.x + startDelay * 3, y2: center.y + 90, bold: 1});
 
             if (alpha !== undefined) context.globalAlpha = beforeAlpha;
-
-            context.glitch({
-                x: 0, y: 0,
-                width, height,
-                level: startDelay * 1.1
-            });
-
-            context.glitch({
-                x: 0, y: 0,
-                width, height,
-                level: 4 + startDelay * 2.7 + (Math.random() * (2 * (startDelay + 0.3))) >> 0,
-                type: 'box'
-            });
+            context.glitch({x: 0, y: 0, width, height, level: startDelay * 3.2});
+            context.glitch({x: 0, y: 0, width, height, level: 2 + startDelay * 2.7 + (Math.random() * (2 * (startDelay + 0.3))) >> 0, type: 'box'});
         };
 
         const gameControll = _ => {
@@ -215,7 +184,9 @@
                     break;
 
                 default:
-                    if (enemies.length == 0 && bullets.length == 0 && gameTick.stage < 10) {
+                    let enemyBullets = 0;
+                    bullets.map(data => enemyBullets += data.type || 0);
+                    if (enemies.length == 0 && enemyBullets == 0 && gameTick.stage < 10) {
                         console.log('[LOG] Reflesh all bullets');
                         updateStage();
                     }
@@ -226,6 +197,7 @@
         const updateStage = _ => {
             if (gameTick.stage > 0) {
                 console.log(`[LOG] Setup ID:${gameTick.stage}`);
+                gameTick.addLastEnemy = false;
 
                 let calc = (formula, regexp, replace, trace) => {
                     let stack = `${formula}`.replace(regexp, replace);
@@ -233,12 +205,14 @@
                 }
 
                 if (enemyDataset[gameTick.stage] != undefined) {
-                    enemyDataset[gameTick.stage].map(data => {
+                    let limit = 0; // 個数制限（デバッグ用）0でオフ
+                    enemyDataset[gameTick.stage].map((data, index, array) => {
+                        if (limit && limit <= index) return;
                         let delay = data.delay; // 発生までのミリあセカンド
+                        let isLast = array.length - 1 == limit || array.length; // 最後が否か
 
                         let x = null;
                         let y = null;
-
                         let dx = data.dx || 0;
                         let dy = data.dy || 0;
                         let id = data.id || 0;
@@ -254,7 +228,7 @@
 
                                 delay = data.delay;
                                 delay = calc(delay, /i/gi, i);
-                                enemies.push({body: new Enemy({x, y, dx, dy, id, disable: true}), delay});
+                                enemies.push({body: new Enemy({x, y, dx, dy, id, disable: true}), delay, isLast: l - 1 == i ? isLast : false});
                             }
                         } else {
                             x = calc(data.x, /c(enter)?x/gi, center.x);
@@ -262,15 +236,7 @@
                             x = calc(x, /max/gi, width, true);
                             y = calc(y, /max/gi, height, true);
 
-                            enemies.push({
-                                body: new Enemy({
-                                    x, y,
-                                    x, dy,
-                                    id, disable: true
-                                }),
-
-                                delay
-                            });
+                            enemies.push({body: new Enemy({x, y, x, dy, id, disable: true}), delay, isLast});
                         }
                     });
                 }
@@ -451,29 +417,21 @@
             }
         };
 
-        // 右クリック禁止
-        document.oncontextmenu = () => false;
+        document.oncontextmenu = _ => false;
 
-        // バックグラウンド判定
         document.addEventListener('webkitvisibilitychange', _ => {
             isBackground = document.webkitHidden;
             keyBuffer[27] = isBackground && !gameTick.pause.status >> 0;
         });
 
-        document.addEventListener('keydown', event => {
-            keyBuffer[event.keyCode] = 1;
-        });
+        document.addEventListener('keydown', event => keyBuffer[event.keyCode] = 1);
 
-        document.addEventListener('keyup', event => {
-            keyBuffer[event.keyCode] = 0;
-        });
+        document.addEventListener('keyup', event => keyBuffer[event.keyCode] = 0);
 
         canvas.addEventListener('mousemove', event => {
             let rect = canvas.getBoundingClientRect();
             let x = event.clientX - rect.left;
             let y = event.clientY - rect.top;
-
-            return {x, y}; // test
         });
 
         const main = _ => {
@@ -548,6 +506,9 @@
                             data.body.disable = !(!gameTick.pause.status && timeStamp - data.time > data.delay);
                         } else {
                             data.body.draw(context, gameTick.pause.status);
+                            if (data.isLast && !gameTick.addLastEnemy) {
+                                gameTick.addLastEnemy = true;
+                            }
                         }
                     });
 
@@ -566,10 +527,11 @@
                         if (height - fix < myself.body.y) myself.body.y = height - fix;
 
                         if (keyBuffer[90] && getTimeStamp() - myself.shot.timestamp > myself.shot.interval) {
-                            let length = 14;
-                            bullets.push(new Bullet({x: myself.body.x, y: myself.body.y - 20, dx: 0, dy: -length}));
-                            bullets.push(new Bullet({x: myself.body.x - 0.3, y: myself.body.y - 20, dx: -0.6 + 0.3 * shift, dy: -length}));
-                            bullets.push(new Bullet({x: myself.body.x + 0.3, y: myself.body.y - 20, dx: 0.6 - 0.3 * shift, dy: -length}));
+                            let speed = 1.2;
+                            let length = 14.2;
+                            bullets.push(new Bullet({x: myself.body.x, y: myself.body.y - 20, dx: 0, dy: -length * speed}));
+                            bullets.push(new Bullet({x: myself.body.x + 0.3, y: myself.body.y - 20, dx: 0.6 - 0.3 * shift, dy: -length * speed}));
+                            bullets.push(new Bullet({x: myself.body.x - 0.3, y: myself.body.y - 20, dx: -0.6 + 0.3 * shift, dy: -length * speed}));
                             myself.shot.timestamp = getTimeStamp();
                         }
 
@@ -582,15 +544,12 @@
                             }
                         });
 
-                        // check hitting objects
                         let isHitEnemy = false;
-
                         bullets.map((bullet, bulletID) => {
                             if (bullet.disappear < 0) return;
 
                             let x = bullet.x;
                             let y = bullet.y;
-
                             if (bullet.type) {
                                 // enemiy's bullet
                                 if (myself.alive && getDistance(6, x, y, myself.body.x, myself.body.y)) {
@@ -641,6 +600,11 @@
                             if (data.body.disappear == 2) enemies.splice(index, 1);
                         });
 
+                        if (gameTick.addLastEnemy && enemies.length == 0) {
+                            setTimeout(_ => destroyBullets(1), 900);
+                            gameTick.addLastEnemy = false;
+                        }
+
                         // context.glitch({x: 0, y: 0, width, height, level: 50});
                     } else {
                         context.noise({x: 0, y:0, width, height, level: 13, gray: true, alpha: 10});
@@ -681,7 +645,7 @@
 
                 if (parsent == 1) {
                     gameTick.data.frame += 0.23; // speed
-                    if (Math.random() > 0.4) context.text({x: center.x, y: center.y + 180, text: 'Completed', font: 'Haettenschweiler', px: 18});
+                    if (Math.random() > 0.4) context.text({x: center.x, y: center.y + 180, text: 'Completed!', font: 'Haettenschweiler', px: 18});
 
                     context.globalAlpha = gameTick.data.frame / 11;
                     context.beginPath();
@@ -720,11 +684,11 @@
         const goButton = document.getElementById('go-button');
         const goContent = document.getElementById('go-content');
 
-        setTimeout(() => {
+        setTimeout(_ => {
             proposal.classList.add('feed-in');
             goContent.classList.add('feed-in');
 
-            goButton.addEventListener('click', () => {
+            goButton.addEventListener('click', _ => {
                 goContent.style.pointerEvents = 'none';
                 proposal.classList.remove('feed-in');
                 goContent.classList.remove('feed-in');
@@ -732,13 +696,13 @@
                 proposal.classList.add('feed-out');
                 goContent.classList.add('feed-out');
 
-                setTimeout(() => {
+                setTimeout(_ => {
                     onGlitch = document.getElementById('glitch').checked;
                     gameArea.classList.add('feed-in');
-                    setTimeout(() => {
+                    setTimeout(_ => {
                         gameArea.style.opacity = 1;
                         gameArea.classList.remove('feed-in');
-                        setTimeout(() => gameLoop = setInterval(main, fps), 300);
+                        setTimeout(_ => gameLoop = setInterval(main, fps), 300);
                     }, 1000);
                 }, 1000);
             });

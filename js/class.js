@@ -203,8 +203,23 @@ class Bullet extends Character {
 
     draw (context) {
         if (this.type == 1) {
-            context.circle({x: this.x, y: this.y, r: 3.5, bold: 0.7, color: '#26afff'});
-            context.circle({x: this.x, y: this.y, r: 1.5});
+            if (this.disappear > 0) {
+                if (this.effects != undefined && this.tick <= 30) {
+                    context.globalCompositeOperation = 'lighter';
+                    this.effects.map(pos => {
+                        let x = pos.dx * this.tick + this.x;
+                        let y = pos.dy * this.tick + this.y;
+                        context.circle({x, y, r: (31 - this.tick) / 10, bold: 0.7});
+                    });
+                    context.globalCompositeOperation = 'source-over';
+
+                    this.tick++;
+                    if (this.tick > 30) this.disappear = 2;
+                }
+            } else {
+                context.circle({x: this.x, y: this.y, r: 3.5, bold: 0.7, color: '#26afff'});
+                context.circle({x: this.x, y: this.y, r: 1.5});
+            }
         } else {
             context.line({x: this.x, y: this.y + 5, x2: this.x, y2: this.y - 13, bold: 1.4, color: '#2e2e2e'});
             context.line({x: this.x, y: this.y, x2: this.x, y2: this.y - 7, bold: 0.4});
@@ -231,6 +246,16 @@ class Bullet extends Character {
         if (this.disappear == -1 && (timeStamp - this.spawnTime) > this.limitTime) {
             console.log('[LOG] Destroy the bullet out limit');
             this.disappear = 2;
+        }
+
+        if (this.disappear == 1 && this.effects == undefined) {
+            this.effects = new Array(8).fill(null).map(_ => {
+                let dx = -1 + (Math.random() * 2);
+                let dy = -1 + (Math.random() * 2);
+                return {dx, dy};
+            });
+
+            this.tick = 0;
         }
     }
 }

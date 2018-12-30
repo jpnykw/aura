@@ -54,7 +54,7 @@ Renderer.prototype.shape = function (status) {
 Renderer.prototype.circle = function (status) {
     let x = status.x || 0;
     let y = status.y || 0;
-    let r = status.r || status.radius || 32;
+    let r = status.r || 32;
     let bold = status.bold || null;
     let color = status.color || '#e3e3e1';
 
@@ -67,6 +67,7 @@ Renderer.prototype.circle = function (status) {
         this.lineWidth = bold;
     }
 
+    r = r < 0 ? 1 : r;
     this.arc(x, y, r, 0, Math.PI * 2);
     this.closePath();
 
@@ -235,8 +236,8 @@ Renderer.prototype.glitch = function (status) {
 }
 
 Renderer.prototype.lightness = function (level) {
-    let height = this.canvas.height;
     let width = this.canvas.width;
+    let height = this.canvas.height;
     let image = this.getImageData(0, 0, width, height);
     let data = image.data;
 
@@ -250,9 +251,8 @@ Renderer.prototype.lightness = function (level) {
 }
 
 Renderer.prototype.gray = function () {
-    let height = this.canvas.height;
     let width = this.canvas.width;
-
+    let height = this.canvas.height;
     let image = this.getImageData(0, 0, width, height);
     let data = image.data;
 
@@ -268,5 +268,14 @@ Renderer.prototype.gray = function () {
 }
 
 Renderer.prototype.move = function (dx, dy) {
+    let width = this.canvas.width;
+    let height = this.canvas.height;
+    let image = this.getImageData(0, 0, width, height);
+    let data = image.data;
 
+    for (let i = 0; i < data.length; i += 4) {
+        (i / 4) % image.width
+    }
+
+    this.putImageData(image, 0, 0);
 }

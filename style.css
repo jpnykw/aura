@@ -48,7 +48,6 @@ button {
 button:hover {
     color: #121213;
     background: #e3e3e1;
-    /* box-shadow: inset 0 -1px 0 0 #e3e3e1; */
 }
 
 button:focus {

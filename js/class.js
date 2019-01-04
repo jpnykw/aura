@@ -53,42 +53,14 @@ class Enemy extends Character {
     setup () {
         this.shot = {};
         this.bold = 0.7;
+        let status = enemyStatus[this.id];
 
-        switch (this.id) {
-            case 0:
-                this.hitArea = 20;
-                this.hp = 10;
-                this.r = 15;
-
-                this.shot.interval = 30;
-                break;
-
-            case 1:
-                this.hitArea = 25;
-                this.hp = 10;
-                this.r = 20;
-
-                this.shot.interval = 67;
-                break;
-
-            case 2:
-                this.hitArea = 30;
-                this.hp = 9;
-                this.r = 18;
-
-                this.shot.interval = 36;
-                break;
-
-            case 3:
-                this.hitArea = 30;
-                this.hp = 14;
-                this.r = 20;
-
-                this.shot.interval = 80;
-                break;
-        }
-
+        this.shot.interval = status.interval;
         this.shot.tick = this.shot.interval;
+
+        this.hitArea = status.area;
+        this.hp = status.hp;
+        this.r = status.r;
     }
 
     draw (context, pause) {
@@ -103,6 +75,8 @@ class Enemy extends Character {
             case 0:
                 context.shape({x, y, d: 90 + d, r, v: 4, bold, color});
                 context.shape({x, y: y + 5, d: 90 + d, r, v: 4, bold});
+                context.circle({x, y: y + r, r: r / 3.4, color: '#e3e3e1'});
+                context.circle({x, y: y + r, r: r / 4.6, color: '#141415'});
                 break;
 
             case 1:
@@ -125,6 +99,12 @@ class Enemy extends Character {
                 context.shape({ x, y, d: 180, r: r * 1.2, v: 3, bold, color});
                 context.shape({ x, y, d: 180, r, v: 3, bold});
                 break;
+
+            case 4:
+                context.shape({x, y, d: 90 + d, r, v: 4, bold, color});
+                context.shape({x: x - r, y, d: 180, r: r * 0.7, v: 3, bold});
+                context.shape({x: x + r, y, d: 0, r: r * 0.7, v: 3, bold});
+                break;
         }
 
         if (this.aura != undefined) {
@@ -146,18 +126,16 @@ class Enemy extends Character {
             let speed = (this.effectTick + 2) * 9;
             r = 210 / speed;
 
-            // context.globalCompositeOperation = 'lighter';
             this.effects.map(pos => {
                 let dx = pos.dx * speed;
                 let dy = pos.dy * speed;
-                context.circle({x: x + dx, y: y + dy, r, color: '#26afff9c'});
+                context.globalCompositeOperation = 'xor';
+                context.circle({x: x + dx, y: y + dy, r, color: '#66c4ffa4'});
+                context.circle({x: x + dx, y: y + dy, r: r * 0.7, color: '#2e2e2ed6'});
 
-                context.globalCompositeOperation = 'lighter';
-                context.circle({x: x + dx, y: y + dy, r: r * 0.7, color: '#2e2e2ecc'});
-
-                dx *= -1.7;
-                dy *= -1.7;
-                context.circle({x: x + dx, y: y + dy, r: r * 0.86, bold: 0.5, color: '#e3e3e1e6'});
+                context.globalCompositeOperation = 'source-over';
+                context.circle({x: x + dx * -1.4, y: y + dy * 1.7, r: r * 0.86, bold: 0.5, color: '#e3e3e1e6'});
+                context.shape({x: x + dx * 1.5, y: y + dy * -1.2, d: this.effectTick, r: r * 1.2, v: 3 + ((Math.random() * 11) >> 0), bold: 0.8, color: '#56ac9288'});
             });
 
             context.globalCompositeOperation = 'source-over';
@@ -217,8 +195,9 @@ class Bullet extends Character {
                     if (this.tick > 30) this.disappear = 2;
                 }
             } else {
-                context.circle({x: this.x, y: this.y, r: 3.5, bold: 0.7, color: '#26afff'});
-                context.circle({x: this.x, y: this.y, r: 1.5});
+                // context.circle({x: this.x, y: this.y, r: 3.5, bold: 0.7, color: '#26afff'});
+                context.circle({x: this.x, y: this.y, r: 3.6, bold: 1.2, color: '#56ac92'});
+                context.circle({x: this.x, y: this.y, r: 1.4, color: '#141415'});
             }
         } else {
             context.line({x: this.x, y: this.y + 5, x2: this.x, y2: this.y - 13, bold: 1.4, color: '#2e2e2e'});

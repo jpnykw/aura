@@ -85,8 +85,8 @@ Renderer.prototype.text = function (status) {
     let color = status.color || '#e3e3e1';
     let align = status.align || 'center';
     let text = status.text || 'NO TEXT DATA';
-    let px = status.px || 16;
     let font = status.font || 'Arial';
+    let px = status.px || 16;
 
     this.beginPath();
     this.textAlign = align;
@@ -138,30 +138,43 @@ Renderer.prototype.negative = function (status) {
 Renderer.prototype.noise = function (status) {
     let x = status.x || 0;
     let y = status.y || 0;
-    let width = status.w || status.width || 32;
-    let height = status.h || status.height || 32;
-    let gray = status.gray || false;
     let level = status.level || 1;
-    let alpha = status.alpha || 0;
+    let width = status.width || 32;
+    let height = status.height || 32;
+
     let image = this.getImageData(x, y, width, height);
     let data = image.data;
 
-    if (gray) {
-        for (let i = 0; i < data.length; i += 4) {
-            let color = Math.random() * (level * 2) - level;
-            data[i] += color;
-            data[i + 1] += color;
-            data[i + 2] += color;
-            data[i + 3] = alpha || Math.random() * 255;
+    for (let i = 0; i < level; i++) {
+        let id = ((Math.random() * (data.length / 4)) >> 0) * 4;
+        let color = new Array(3).fill(null).map(_ => (-64 + Math.random() * 128) >> 0);
+
+        if (status.gray) {
+            color[1] = color[0];
+            color[2] = color[0];
         }
-    } else {
-        for (let i = 0; i < data.length; i += 4) {
-            data[i] += Math.random() * (level * 2) - level;
-            data[i + 1] += Math.random() * (level * 2) - level;
-            data[i + 2] += Math.random() * (level * 2) - level;
-            data[i + 3] = alpha || Math.random() * 255;
-        }
+
+        data[id] += color[0];
+        data[id + 1] += color[1];
+        data[id + 2] += color[2];
     }
+
+    // if (gray) {
+    //     for (let i = 0; i < data.length; i += 4) {
+    //         let color = Math.random() * (level * 2) - level;
+    //         data[i] += color;
+    //         data[i + 1] += color;
+    //         data[i + 2] += color;
+    //         data[i + 3] = alpha || Math.random() * 255;
+    //     }
+    // } else {
+    //     for (let i = 0; i < data.length; i += 4) {
+    //         data[i] += Math.random() * (level * 2) - level;
+    //         data[i + 1] += Math.random() * (level * 2) - level;
+    //         data[i + 2] += Math.random() * (level * 2) - level;
+    //         data[i + 3] = alpha || Math.random() * 255;
+    //     }
+    // }
 
     this.putImageData(image, x, y);
 }
@@ -171,8 +184,8 @@ Renderer.prototype.glitch = function (status) {
 
     let x = status.x || 0;
     let y = status.y || 0;
-    let width = status.w || status.width || 32;
-    let height = status.h || status.height || 32;
+    let width = status.width || 32;
+    let height = status.height || 32;
 
     let level = status.level || 1;
     let image = this.getImageData(x, y, width, height);
@@ -201,13 +214,13 @@ Renderer.prototype.glitch = function (status) {
 
                 for (let j = 0, l = (Math.random() * 8000) >> 0; j < l; j ++) {
                     if (mix && Math.random() < 0.5) {
-                        [data[i], data[i - height * 4]] = [data[i - height * 4], data[i]];
-                        [data[i + 1], data[i + 1 - height * 4]] = [data[i + 1 - height * 4], data[i + 1]];
-                        [data[i + 2], data[i + 2 - height * 4]] = [data[i + 2 - height * 4], data[i + 2]];
+                        [data[i], data[i - width * 4]] = [data[i - width * 4], data[i]];
+                        [data[i + 1], data[i + 1 - width * 4]] = [data[i + 1 - width * 4], data[i + 1]];
+                        [data[i + 2], data[i + 2 - width * 4]] = [data[i + 2 - width * 4], data[i + 2]];
                     } else {
-                        [data[i], data[i + height * 4]] = [data[i + height * 4], data[i]];
-                        [data[i + 1], data[i + 1 + height * 4]] = [data[i + 1 + height * 4], data[i + 1]];
-                        [data[i + 2], data[i + 2 + height * 4]] = [data[i + 2 + height * 4], data[i + 2]];
+                        [data[i], data[i + width * 4]] = [data[i + width * 4], data[i]];
+                        [data[i + 1], data[i + 1 + width * 4]] = [data[i + 1 + width * 4], data[i + 1]];
+                        [data[i + 2], data[i + 2 + width * 4]] = [data[i + 2 + width * 4], data[i + 2]];
                     }
 
                     i += 4;
@@ -262,19 +275,6 @@ Renderer.prototype.gray = function () {
         data[i] = color;
         data[i + 1] = color;
         data[i + 2] = color;
-    }
-
-    this.putImageData(image, 0, 0);
-}
-
-Renderer.prototype.move = function (dx, dy) {
-    let width = this.canvas.width;
-    let height = this.canvas.height;
-    let image = this.getImageData(0, 0, width, height);
-    let data = image.data;
-
-    for (let i = 0; i < data.length; i += 4) {
-        (i / 4) % image.width
     }
 
     this.putImageData(image, 0, 0);

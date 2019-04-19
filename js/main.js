@@ -1,9 +1,6 @@
 /*
-    うんちっち💃
-    うんちっち🕺
-    うんちっちうんちっちうんちっちうんちっち(ここでしゃがみ、パワーを溜める)
-    うんちっち〜〜〜〜〜〜！！！ｗｗｗｗｗｗ
-    https://twitter.com/sushikichigai
+　　今日も一日
+    https://twitter.com/sussikiti/status/1080035316688334848
 */
 
 

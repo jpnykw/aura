@@ -8,6 +8,7 @@
 
 | key | command
 | - | -
+| Esc | Pause game
 | Arrow | Move
 | Z | Shot
 | X | Bomb

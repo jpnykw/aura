@@ -1,4 +1,16 @@
-coming soon
+せっかく作り込んで、また改めて見て結構良いなと感じたので、  
+未完成ですが、公開しました。  
+
+ステージが途中までしかありません。  
+完成は気長にお待ち下さい。
+
+# Control
+
+| key | command
+| - | -
+| Arrow | Move
+| Z | Shot
+| X | Bomb
 
 # Branches
 | branch | overview |
